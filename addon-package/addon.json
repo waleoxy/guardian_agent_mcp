@@ -1,0 +1,61 @@
+{
+  "manifestVersion": "1.0",
+  "storeListing": {
+    "distributionCountries": ["US"],
+    "locales": {
+      "en-US": {
+        "default": "DEFAULT",
+        "name": {
+          "value": "Guardian",
+          "spokenForm": { "format": "ipa", "value": "ˈɡɑːrdiən" }
+        },
+        "shortDescription": "AI household safety agent that reasons about events before acting, not just alerts",
+        "fullDescription": "Guardian coordinates Ring, Fire TV, and your household context to understand what's happening at home and decide what to do about it — rather than just forwarding a notification. Tell Guardian to watch the house, ask it to check on a family member, and it will reason about routines, expected visitors, and your safety policies before acting. Guardian never takes an irreversible action without asking first, and never overrides a rule you've set as a hard constraint.",
+        "examplePhrases": [
+          "Guardian, watch the house and help my mother if she needs anything",
+          "Guardian, check whether Mom is okay",
+          "Guardian, what's the status of the house right now",
+          "Guardian, if someone doesn't answer after two attempts, notify me"
+        ],
+        "privacyAndCompliance": {
+          "privacyPolicyUrl": "https://REPLACE_WITH_YOUR_DOMAIN/guardian/privacy",
+          "termsOfUseUrl": "https://REPLACE_WITH_YOUR_DOMAIN/guardian/terms"
+        },
+        "mediaAssets": {
+          "icons": {
+            "light": [
+              { "size": "72x72", "uri": "https://REPLACE_WITH_YOUR_CDN/icon-72x72.png" },
+              { "size": "64x64", "uri": "https://REPLACE_WITH_YOUR_CDN/icon-64x64.png" },
+              { "size": "88x88", "uri": "https://REPLACE_WITH_YOUR_CDN/icon-88x88.png" },
+              { "size": "126x126", "uri": "https://REPLACE_WITH_YOUR_CDN/icon-126x126.png" },
+              { "size": "180x180", "uri": "https://REPLACE_WITH_YOUR_CDN/icon-180x180.png" },
+              { "size": "241x241", "uri": "https://REPLACE_WITH_YOUR_CDN/icon-241x241.png" }
+            ],
+            "dark": []
+          },
+          "carouselImages": [
+            {
+              "uri": "https://REPLACE_WITH_YOUR_CDN/carousel-1.png",
+              "altText": "Guardian dashboard showing house status and an active wellness-check incident",
+              "size": "600x900"
+            }
+          ],
+          "bannerImages": []
+        }
+      }
+    }
+  },
+  "integrations": [
+    {
+      "type": "MCP",
+      "config": {
+        "endpoints": {
+          "default": {
+            "type": "HTTPS",
+            "uri": "https://REPLACE_WITH_YOUR_API_GATEWAY_URL/mcp"
+          }
+        }
+      }
+    }
+  ]
+}

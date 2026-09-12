@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Guardian</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #0b0e13;
+    --panel: #141922;
+    --panel-border: #232b38;
+    --text: #e8ecf2;
+    --muted: #8b96a8;
+    --green: #35d07f;
+    --yellow: #f5c451;
+    --red: #ef5b5b;
+    --accent: #5b8cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    padding: 32px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  h1 {
+    font-size: 28px;
+    letter-spacing: 0.08em;
+    margin: 0;
+  }
+  h1 .icon { margin-right: 10px; }
+  .monitoring-pill {
+    font-size: 13px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--panel-border);
+    color: var(--muted);
+  }
+  .monitoring-pill.active { color: var(--green); border-color: var(--green); }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin-bottom: 20px;
+  }
+  .panel h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 0 0 14px 0;
+  }
+
+  .status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--panel-border);
+  }
+  .status-row:last-child { border-bottom: none; }
+  .status-row .label { font-size: 15px; }
+  .status-row .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+  .dot.green { background: var(--green); }
+  .dot.yellow { background: var(--yellow); }
+  .dot.red { background: var(--red); }
+
+  .incident {
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .incident .tier {
+    display: inline-block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+  .tier.ask { background: rgba(245, 196, 81, 0.15); color: var(--yellow); }
+  .tier.escalate { background: rgba(239, 91, 91, 0.15); color: var(--red); }
+  .tier.inform { background: rgba(91, 140, 255, 0.15); color: var(--accent); }
+  .incident .reasoning { font-size: 14px; color: var(--text); margin: 6px 0 12px 0; line-height: 1.4; }
+  .incident .confidence { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .actions { display: flex; gap: 10px; }
+  button {
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button.escalate:hover { border-color: var(--red); color: var(--red); }
+
+  .empty { color: var(--muted); font-size: 14px; padding: 8px 0; }
+  .updated { font-size: 11px; color: var(--muted); text-align: right; margin-top: 8px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1><span class="icon">🏠</span>GUARDIAN</h1>
+      <span id="monitoringPill" class="monitoring-pill">Monitoring off</span>
+    </header>
+
+    <div class="panel">
+      <h2>House Status</h2>
+      <div id="members"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Active Incidents</h2>
+      <div id="incidents"></div>
+    </div>
+
+    <div class="updated" id="updated"></div>
+  </div>
+
+<script>
+  function dotClass(tier) {
+    if (tier === "escalate") return "red";
+    if (tier === "ask") return "yellow";
+    return "green";
+  }
+
+  function renderMembers(members) {
+    const el = document.getElementById("members");
+    if (!members.length) {
+      el.innerHTML = '<div class="empty">No household members on file.</div>';
+      return;
+    }
+    el.innerHTML = members.map(m => `
+      <div class="status-row">
+        <div>
+          <div class="label"><span class="dot ${m.status === 'home' ? 'green' : m.status === 'unknown' ? 'yellow' : 'green'}"></span>${m.name} — ${m.role}</div>
+          <div class="sub">${m.routine ?? ''}</div>
+        </div>
+        <div class="sub">${m.status ?? 'unknown'}</div>
+      </div>
+    `).join("");
+  }
+
+  function renderIncidents(incidents) {
+    const el = document.getElementById("incidents");
+    if (!incidents.length) {
+      el.innerHTML = '<div class="empty">🟢 All clear — no active incidents.</div>';
+      return;
+    }
+    el.innerHTML = incidents.map(i => `
+      <div class="incident">
+        <span class="tier ${i.tier ?? 'ask'}">${(i.tier ?? 'ask').toUpperCase()}</span>
+        <div class="reasoning">${i.reasoning ?? i.type}</div>
+        <div class="confidence">Confidence: ${i.confidence ?? '—'}%</div>
+        <div class="actions">
+          <button onclick="act('${i.id}', 'resolve')">Contact / Resolve</button>
+          <button class="escalate" onclick="act('${i.id}', 'escalate')">Escalate</button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  async function act(id, action) {
+    await fetch(`/api/incidents/${id}/${action}`, { method: "POST" });
+    refresh();
+  }
+
+  async function refresh() {
+    try {
+      const res = await fetch("/api/status");
+      const data = await res.json();
+      const pill = document.getElementById("monitoringPill");
+      pill.textContent = data.monitoringActive ? "Monitoring active" : "Monitoring off";
+      pill.className = "monitoring-pill" + (data.monitoringActive ? " active" : "");
+      renderMembers(data.members || []);
+      renderIncidents(data.activeIncidents || []);
+      document.getElementById("updated").textContent = "Updated " + new Date().toLocaleTimeString();
+    } catch (e) {
+      console.error("Guardian dashboard: refresh failed", e);
+    }
+  }
+
+  refresh();
+  setInterval(refresh, 3000);
+</script>
+</body>
+</html>

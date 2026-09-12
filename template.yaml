@@ -1,0 +1,191 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Guardian — MCP server (Lambda + API Gateway), Ring ingestion Lambda
+  (EventBridge-triggered), DynamoDB tables, and a CloudWatch dashboard.
+  Deploy with: sam build && sam deploy --guided
+
+Parameters:
+  DecisionEngine:
+    Type: String
+    Default: bedrock
+    AllowedValues: [rules, bedrock]
+    Description: >
+      Start with "rules" to deploy with zero Bedrock dependency and
+      confirm the pipeline end to end, then switch to "bedrock" once
+      you've confirmed model access in this account/region.
+  BedrockModelId:
+    Type: String
+    Default: anthropic.claude-3-5-sonnet-20241022-v2:0
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 10
+    MemorySize: 256
+    Environment:
+      Variables:
+        STORE_BACKEND: dynamo
+        DECISION_ENGINE: !Ref DecisionEngine
+        BEDROCK_MODEL_ID: !Ref BedrockModelId
+        TABLE_MEMBERS: !Ref MembersTable
+        TABLE_VISITORS: !Ref VisitorsTable
+        TABLE_POLICIES: !Ref PoliciesTable
+        TABLE_EVENTS: !Ref EventsTable
+        TABLE_INCIDENTS: !Ref IncidentsTable
+        TABLE_CONFIG: !Ref ConfigTable
+
+Resources:
+
+  # --- MCP server: Alexa+'s public HTTPS entry point ---------------------
+  McpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: guardian-mcp-server
+      Handler: dist/lambda/mcpHandler.handler
+      CodeUri: .
+      Events:
+        McpApi:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MembersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref VisitorsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PoliciesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref IncidentsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConfigTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              # Scoped to the model families Guardian actually calls,
+              # not "bedrock:*" — least privilege even in a hackathon.
+              Resource:
+                - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.*"
+
+  # --- Ring ingestion: async path, triggered by EventBridge --------------
+  RingEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: guardian-ring-event-handler
+      Handler: dist/lambda/ringEventHandler.handler
+      CodeUri: .
+      Events:
+        RingEvent:
+          Type: EventBridgeRule
+          Properties:
+            Pattern:
+              source: ["guardian.ring"]
+              detail-type: ["RingEvent"]
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MembersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref VisitorsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PoliciesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EventsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref IncidentsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConfigTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource:
+                - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.*"
+
+  # --- Tables --------------------------------------------------------------
+  MembersTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: guardian-members
+      PrimaryKey: { Name: id, Type: String }
+  VisitorsTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: guardian-visitors
+      PrimaryKey: { Name: id, Type: String }
+  PoliciesTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: guardian-policies
+      PrimaryKey: { Name: id, Type: String }
+  EventsTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: guardian-events
+      PrimaryKey: { Name: id, Type: String }
+  IncidentsTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: guardian-incidents
+      PrimaryKey: { Name: id, Type: String }
+  ConfigTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: guardian-config
+      PrimaryKey: { Name: key, Type: String }
+
+  # --- Observability: the "look under the hood" screen for judges --------
+  GuardianDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: guardian-agent
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric", "x": 0, "y": 0, "width": 12, "height": 6,
+              "properties": {
+                "title": "MCP server invocations / errors",
+                "metrics": [
+                  ["AWS/Lambda", "Invocations", "FunctionName", "${McpFunction}"],
+                  ["AWS/Lambda", "Errors", "FunctionName", "${McpFunction}"]
+                ],
+                "period": 60, "stat": "Sum", "region": "${AWS::Region}"
+              }
+            },
+            {
+              "type": "metric", "x": 12, "y": 0, "width": 12, "height": 6,
+              "properties": {
+                "title": "Ring event handler invocations / errors",
+                "metrics": [
+                  ["AWS/Lambda", "Invocations", "FunctionName", "${RingEventFunction}"],
+                  ["AWS/Lambda", "Errors", "FunctionName", "${RingEventFunction}"]
+                ],
+                "period": 60, "stat": "Sum", "region": "${AWS::Region}"
+              }
+            },
+            {
+              "type": "metric", "x": 0, "y": 6, "width": 24, "height": 6,
+              "properties": {
+                "title": "MCP server latency (p50 / p99) — must stay under 500ms for Alexa+",
+                "metrics": [
+                  ["AWS/Lambda", "Duration", "FunctionName", "${McpFunction}", { "stat": "p50" }],
+                  ["AWS/Lambda", "Duration", "FunctionName", "${McpFunction}", { "stat": "p99" }]
+                ],
+                "period": 60, "region": "${AWS::Region}"
+              }
+            }
+          ]
+        }
+
+Outputs:
+  McpEndpoint:
+    Description: The HTTPS endpoint to register as your addon.json integrations[].config.endpoints.default.uri
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/mcp"
+  DashboardUrl:
+    Description: CloudWatch dashboard URL
+    Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=guardian-agent"

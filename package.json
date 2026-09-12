@@ -1,0 +1,33 @@
+{
+  "name": "guardian-mcp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsc --watch & node --watch dist/server.js",
+    "seed:dynamo": "node dist/scripts/seedDynamo.js",
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1131.0",
+    "@aws-sdk/client-dynamodb": "^3.1131.0",
+    "@aws-sdk/lib-dynamodb": "^3.1131.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "express": "^5.2.1",
+    "serverless-http": "^4.0.0",
+    "zod": "^4.6.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.163",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
+  }
+}

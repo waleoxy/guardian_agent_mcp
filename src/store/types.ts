@@ -12,13 +12,6 @@ export type NewEventInput = Omit<HouseholdEvent, "id" | "timestamp"> & {
 
 export type NewIncidentInput = Omit<Incident, "id" | "createdAt" | "updatedAt">;
 
-/**
- * Every storage backend (in-memory for local/demo dev, DynamoDB for
- * production) implements this. Everything else in the codebase —
- * decision engines, MCP tools — talks to this interface only, never
- * to a concrete backend. That's what makes the DynamoDB swap a
- * one-file change instead of a rewrite.
- */
 export interface IGuardianStore {
   listMembers(): Promise<HouseholdMember[]>;
   getMember(id: string): Promise<HouseholdMember | undefined>;

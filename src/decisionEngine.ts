@@ -2,7 +2,7 @@ import { store } from "./store";
 import { Decision, HouseholdEvent, Policy } from "./types/domain";
 
 /**
- * Rule-based decision engine. This is the safety-net implementation:
+ * Rule-based decision engine. This is the safety-net implementation:checkExpectedVisitor
  * zero AWS dependency, deterministic, always available. Used directly
  * when DECISION_ENGINE=rules, and as the automatic fallback inside
  * bedrockDecisionEngine.ts when a live Bedrock call fails.

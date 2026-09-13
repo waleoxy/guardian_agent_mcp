@@ -1,210 +1,1246 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<title>Guardian</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<style>
-  :root {
-    --bg: #0b0e13;
-    --panel: #141922;
-    --panel-border: #232b38;
-    --text: #e8ecf2;
-    --muted: #8b96a8;
-    --green: #35d07f;
-    --yellow: #f5c451;
-    --red: #ef5b5b;
-    --accent: #5b8cff;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    min-height: 100vh;
-    padding: 32px;
-  }
-  .wrap { max-width: 720px; margin: 0 auto; }
-  header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 28px;
-  }
-  h1 {
-    font-size: 28px;
-    letter-spacing: 0.08em;
-    margin: 0;
-  }
-  h1 .icon { margin-right: 10px; }
-  .monitoring-pill {
-    font-size: 13px;
-    padding: 5px 12px;
-    border-radius: 999px;
-    border: 1px solid var(--panel-border);
-    color: var(--muted);
-  }
-  .monitoring-pill.active { color: var(--green); border-color: var(--green); }
+  <head>
+    <meta charset="utf-8" />
+    <title>Guardian Command Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #080b10;
+        --surface: #0f1520;
+        --surface2: #161e2e;
+        --border: #1e2d42;
+        --text: #e4eaf4;
+        --muted: #5a6a82;
+        --green: #2ecc8a;
+        --yellow: #f5c842;
+        --red: #f04f4f;
+        --blue: #4f8ef5;
+        --purple: #a78bfa;
+        --green-dim: rgba(46, 204, 138, 0.12);
+        --yellow-dim: rgba(245, 200, 66, 0.12);
+        --red-dim: rgba(240, 79, 79, 0.12);
+        --blue-dim: rgba(79, 142, 245, 0.12);
+        --purple-dim: rgba(167, 139, 250, 0.12);
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 14px;
-    padding: 20px 22px;
-    margin-bottom: 20px;
-  }
-  .panel h2 {
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    margin: 0 0 14px 0;
-  }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        height: 100vh;
+        display: grid;
+        grid-template-rows: 60px 1fr 44px;
+        overflow: hidden;
+      }
 
-  .status-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--panel-border);
-  }
-  .status-row:last-child { border-bottom: none; }
-  .status-row .label { font-size: 15px; }
-  .status-row .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 6px;
-  }
-  .dot.green { background: var(--green); }
-  .dot.yellow { background: var(--yellow); }
-  .dot.red { background: var(--red); }
+      /* TOP BAR */
+      #topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+      }
+      .brand-sub {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 400;
+        letter-spacing: 0.04em;
+      }
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      #clock {
+        font-size: 16px;
+        font-variant-numeric: tabular-nums;
+        color: var(--muted);
+      }
+      #monBtn {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 16px;
+        border-radius: 999px;
+        border: 1.5px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      #monBtn .led {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--muted);
+        transition: all 0.3s;
+      }
+      #monBtn.active {
+        border-color: var(--green);
+        color: var(--green);
+      }
+      #monBtn.active .led {
+        background: var(--green);
+        box-shadow: 0 0 6px var(--green);
+      }
 
-  .incident {
-    border: 1px solid var(--panel-border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    margin-bottom: 12px;
-  }
-  .incident .tier {
-    display: inline-block;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 3px 8px;
-    border-radius: 6px;
-    margin-bottom: 8px;
-  }
-  .tier.ask { background: rgba(245, 196, 81, 0.15); color: var(--yellow); }
-  .tier.escalate { background: rgba(239, 91, 91, 0.15); color: var(--red); }
-  .tier.inform { background: rgba(91, 140, 255, 0.15); color: var(--accent); }
-  .incident .reasoning { font-size: 14px; color: var(--text); margin: 6px 0 12px 0; line-height: 1.4; }
-  .incident .confidence { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
-  .actions { display: flex; gap: 10px; }
-  button {
-    background: transparent;
-    border: 1px solid var(--panel-border);
-    color: var(--text);
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    cursor: pointer;
-  }
-  button:hover { border-color: var(--accent); color: var(--accent); }
-  button.escalate:hover { border-color: var(--red); color: var(--red); }
+      /* MAIN — 3 columns */
+      #main {
+        display: grid;
+        grid-template-columns: 320px 1fr 360px;
+        overflow: hidden;
+      }
 
-  .empty { color: var(--muted); font-size: 14px; padding: 8px 0; }
-  .updated { font-size: 11px; color: var(--muted); text-align: right; margin-top: 8px; }
-</style>
-</head>
-<body>
-  <div class="wrap">
-    <header>
-      <h1><span class="icon">🏠</span>GUARDIAN</h1>
-      <span id="monitoringPill" class="monitoring-pill">Monitoring off</span>
-    </header>
+      /* shared column styles */
+      .col {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border-right: 1px solid var(--border);
+      }
+      .col:last-child {
+        border-right: none;
+      }
+      .col-header {
+        padding: 12px 16px 10px;
+        border-bottom: 1px solid var(--border);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        flex-shrink: 0;
+      }
+      .col-body {
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+        padding: 0;
+      }
 
-    <div class="panel">
-      <h2>House Status</h2>
-      <div id="members"></div>
+      /* MEMBERS */
+      .member-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .member-row:last-child {
+        border-bottom: none;
+      }
+      .member-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--surface2);
+        border: 2px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+      .member-name {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .member-role {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 1px;
+      }
+      .status-badge {
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        flex-shrink: 0;
+      }
+      .status-badge.home {
+        background: var(--green-dim);
+        color: var(--green);
+      }
+      .status-badge.away {
+        background: var(--surface2);
+        color: var(--muted);
+      }
+      .status-badge.unknown {
+        background: var(--yellow-dim);
+        color: var(--yellow);
+      }
+
+      /* EVENT FEED */
+      .event-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 16px;
+        border-bottom: 1px solid var(--border);
+        font-size: 12px;
+      }
+      .event-item:last-child {
+        border-bottom: none;
+      }
+      .event-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--blue);
+        margin-top: 3px;
+        flex-shrink: 0;
+      }
+      .event-type {
+        font-weight: 600;
+        font-size: 12px;
+      }
+      .event-loc {
+        color: var(--muted);
+        font-size: 11px;
+        margin-top: 1px;
+      }
+      .event-time {
+        color: var(--muted);
+        font-size: 11px;
+        margin-left: auto;
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding-left: 8px;
+      }
+
+      /* INCIDENTS */
+      .incident-card {
+        margin: 10px 12px;
+        border-radius: 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 14px 16px;
+      }
+      .incident-card.tier-escalate {
+        border-left: 3px solid var(--red);
+      }
+      .incident-card.tier-ask {
+        border-left: 3px solid var(--yellow);
+      }
+      .incident-card.tier-inform {
+        border-left: 3px solid var(--blue);
+      }
+      .incident-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .incident-type {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+      }
+      .tier-pill {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 3px 8px;
+        border-radius: 5px;
+      }
+      .tier-pill.escalate {
+        background: var(--red-dim);
+        color: var(--red);
+      }
+      .tier-pill.ask {
+        background: var(--yellow-dim);
+        color: var(--yellow);
+      }
+      .tier-pill.inform {
+        background: var(--blue-dim);
+        color: var(--blue);
+      }
+      .incident-reasoning {
+        font-size: 13px;
+        line-height: 1.5;
+        margin-bottom: 10px;
+      }
+      .incident-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .conf-bar-wrap {
+        flex: 1;
+        height: 3px;
+        background: var(--border);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .conf-bar {
+        height: 100%;
+        border-radius: 2px;
+      }
+      .conf-bar.escalate {
+        background: var(--red);
+      }
+      .conf-bar.ask {
+        background: var(--yellow);
+      }
+      .conf-bar.inform {
+        background: var(--blue);
+      }
+      .conf-label {
+        font-size: 11px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .incident-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .btn {
+        flex: 1;
+        padding: 8px 0;
+        border-radius: 7px;
+        border: 1.5px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .btn:hover {
+        background: var(--surface2);
+        border-color: var(--blue);
+        color: var(--blue);
+      }
+      .btn.danger:hover {
+        border-color: var(--red);
+        color: var(--red);
+        background: var(--red-dim);
+      }
+      .all-clear {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 160px;
+        gap: 10px;
+        color: var(--muted);
+      }
+      .all-clear .icon {
+        font-size: 40px;
+      }
+      .all-clear .msg {
+        font-size: 14px;
+      }
+
+      /* SIMULATE COLUMN */
+      .sim-section {
+        border-bottom: 1px solid var(--border);
+      }
+      .sim-section-title {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--purple);
+        padding: 10px 16px 8px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      .sim-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 9px 16px;
+        border: none;
+        border-bottom: 1px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+        transition: background 0.12s;
+        text-align: left;
+      }
+      .sim-btn:last-child {
+        border-bottom: none;
+      }
+      .sim-btn:hover {
+        background: var(--surface2);
+      }
+      .sim-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+      .sim-btn .s-icon {
+        font-size: 16px;
+        flex-shrink: 0;
+        width: 22px;
+        text-align: center;
+      }
+      .sim-btn .s-name {
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .sim-btn .s-desc {
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 1px;
+      }
+
+      /* CUSTOM FORM */
+      .custom-form {
+        padding: 12px 16px;
+      }
+      .form-row {
+        margin-bottom: 10px;
+      }
+      .form-row label {
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .form-row input,
+      .form-row select {
+        width: 100%;
+        padding: 7px 9px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        font-size: 12px;
+        outline: none;
+      }
+      .form-row input:focus,
+      .form-row select:focus {
+        border-color: var(--purple);
+      }
+      .form-row select option {
+        background: var(--surface2);
+      }
+      .fire-btn {
+        width: 100%;
+        padding: 9px;
+        background: var(--purple-dim);
+        border: 1.5px solid var(--purple);
+        border-radius: 7px;
+        color: var(--purple);
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s;
+        margin-top: 4px;
+      }
+      .fire-btn:hover {
+        background: rgba(167, 139, 250, 0.22);
+      }
+      .fire-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
+      /* STATUS BAR */
+      #statusbar {
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        gap: 20px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      /* TOAST */
+      #toast {
+        position: fixed;
+        bottom: 60px;
+        right: 16px;
+        max-width: 320px;
+        padding: 12px 15px;
+        border-radius: 10px;
+        font-size: 12px;
+        line-height: 1.5;
+        border: 1px solid transparent;
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+          opacity 0.22s,
+          transform 0.22s;
+        pointer-events: none;
+        z-index: 50;
+      }
+      #toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #toast.inform {
+        background: var(--blue-dim);
+        border-color: rgba(79, 142, 245, 0.4);
+      }
+      #toast.ask {
+        background: var(--yellow-dim);
+        border-color: rgba(245, 200, 66, 0.4);
+      }
+      #toast.escalate {
+        background: var(--red-dim);
+        border-color: rgba(240, 79, 79, 0.4);
+      }
+      #toast.error {
+        background: var(--surface2);
+        border-color: var(--border);
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TOP BAR -->
+    <div id="topbar">
+      <div class="brand">
+        <span>🛡️</span> GUARDIAN
+        <span class="brand-sub">COMMAND CENTER</span>
+      </div>
+      <div class="topbar-right">
+        <span id="clock"></span>
+        <button id="monBtn" onclick="toggleMonitoring()">
+          <span class="led"></span>
+          <span id="monLabel">MONITORING OFF</span>
+        </button>
+      </div>
     </div>
 
-    <div class="panel">
-      <h2>Active Incidents</h2>
-      <div id="incidents"></div>
+    <!-- MAIN: 3 columns -->
+    <div id="main">
+      <!-- COL 1: Household + Event Feed -->
+      <div class="col">
+        <div class="col-header">Household</div>
+        <div
+          id="members"
+          style="flex-shrink: 0; border-bottom: 1px solid var(--border)"
+        ></div>
+        <div class="col-header" style="border-top: none">Recent Events</div>
+        <div class="col-body" id="eventFeed"></div>
+      </div>
+
+      <!-- COL 2: Active Incidents -->
+      <div class="col">
+        <div class="col-header">Active Incidents</div>
+        <div class="col-body" id="incidents"></div>
+      </div>
+
+      <!-- COL 3: Simulate -->
+      <div class="col">
+        <div class="col-header">Simulate Event</div>
+        <div class="col-body" id="simPanel">
+          <div class="sim-section">
+            <div class="sim-section-title">🔒 Security</div>
+            <button
+              class="sim-btn"
+              onclick="run('ring', 'person_detected', 'front_door', -1)"
+            >
+              <span class="s-icon">🚶</span>
+              <div>
+                <div class="s-name">Unknown Visitor</div>
+                <div class="s-desc">Scenario B · escalate</div>
+              </div>
+            </button>
+            <button
+              class="sim-btn"
+              onclick="run('ring', 'person_detected', 'front_door', 1)"
+            >
+              <span class="s-icon">🧹</span>
+              <div>
+                <div class="s-name">Expected Visitor</div>
+                <div class="s-desc">Scenario A · inform</div>
+              </div>
+            </button>
+            <button
+              class="sim-btn"
+              onclick="run('ring', 'door_activity', 'front_door')"
+            >
+              <span class="s-icon">🔓</span>
+              <div>
+                <div class="s-name">Door Left Open</div>
+                <div class="s-desc">Prolonged door activity</div>
+              </div>
+            </button>
+            <button
+              class="sim-btn"
+              onclick="run('ring', 'vehicle_detected', 'driveway', -1)"
+            >
+              <span class="s-icon">🚗</span>
+              <div>
+                <div class="s-name">Unknown Vehicle</div>
+                <div class="s-desc">Unrecognised car in driveway</div>
+              </div>
+            </button>
+            <button
+              class="sim-btn"
+              onclick="run('ring', 'package_theft', 'porch', -1)"
+            >
+              <span class="s-icon">📦</span>
+              <div>
+                <div class="s-name">Package Theft Attempt</div>
+                <div class="s-desc">Package removed by unknown person</div>
+              </div>
+            </button>
+            <button
+              class="sim-btn"
+              onclick="runNight('ring', 'motion', 'back_yard')"
+            >
+              <span class="s-icon">🔦</span>
+              <div>
+                <div class="s-name">Late-Night Motion</div>
+                <div class="s-desc">Motion after midnight</div>
+              </div>
+            </button>
+            <button
+              class="sim-btn"
+              onclick="run('ring', 'window_activity', 'garage')"
+            >
+              <span class="s-icon">🔑</span>
+              <div>
+                <div class="s-name">Unexpected Garage Open</div>
+                <div class="s-desc">Garage door outside schedule</div>
+              </div>
+            </button>
+            <button
+              class="sim-btn"
+              onclick="
+                runOutsideWindow('ring', 'person_detected', 'front_door')
+              "
+            >
+              <span class="s-icon">👷</span>
+              <div>
+                <div class="s-name">Contractor Off-Schedule</div>
+                <div class="s-desc">Arrival outside booked window</div>
+              </div>
+            </button>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">❤️ Wellness</div>
+            <button
+              class="sim-btn"
+              onclick="run('system', 'no_response', 'bedroom')"
+            >
+              <span class="s-icon">❓</span>
+              <div>
+                <div class="s-name">No Response</div>
+                <div class="s-desc">Wellness check · ask</div>
+              </div>
+            </button>
+            <button
+              class="sim-btn"
+              onclick="run('system', 'routine_deviation', 'kitchen')"
+            >
+              <span class="s-icon">🛌</span>
+              <div>
+                <div class="s-name">Mary Not Up by 9AM</div>
+                <div class="s-desc">No kitchen activity by expected time</div>
+              </div>
+            </button>
+            <button
+              class="sim-btn"
+              onclick="run('system', 'medication_missed', 'kitchen')"
+            >
+              <span class="s-icon">💊</span>
+              <div>
+                <div class="s-name">Medication Missed</div>
+                <div class="s-desc">No activity at medication time</div>
+              </div>
+            </button>
+            <button
+              class="sim-btn"
+              onclick="run('system', 'fall_detected', 'bathroom')"
+            >
+              <span class="s-icon">🆘</span>
+              <div>
+                <div class="s-name">Fall Detected</div>
+                <div class="s-desc">Sudden impact in bathroom</div>
+              </div>
+            </button>
+            <button
+              class="sim-btn"
+              onclick="runEarlyReturn('ring', 'person_detected', 'front_door')"
+            >
+              <span class="s-icon">🧒</span>
+              <div>
+                <div class="s-name">James Home Early</div>
+                <div class="s-desc">Child back before school ends</div>
+              </div>
+            </button>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">⚡ Patterns</div>
+            <button class="sim-btn" onclick="runPattern()">
+              <span class="s-icon">⚡</span>
+              <div>
+                <div class="s-name">Event Cluster</div>
+                <div class="s-desc">Scenario D · 3 events in 10 min</div>
+              </div>
+            </button>
+            <button class="sim-btn" onclick="runNightCluster()">
+              <span class="s-icon">🌙</span>
+              <div>
+                <div class="s-name">Late-Night Cluster</div>
+                <div class="s-desc">Motion + door + window after 11PM</div>
+              </div>
+            </button>
+            <button class="sim-btn" onclick="runRepeatedDoorbell()">
+              <span class="s-icon">🔁</span>
+              <div>
+                <div class="s-name">Repeated Doorbell</div>
+                <div class="s-desc">3 rings in 5 min, no answer</div>
+              </div>
+            </button>
+            <button class="sim-btn" onclick="runGhostMotion()">
+              <span class="s-icon">🏠</span>
+              <div>
+                <div class="s-name">Motion While Empty</div>
+                <div class="s-desc">Everyone away, motion inside</div>
+              </div>
+            </button>
+          </div>
+
+          <div class="sim-section">
+            <div class="sim-section-title">🛠 Custom Event</div>
+            <div class="custom-form">
+              <div class="form-row">
+                <label>Source</label>
+                <select id="cSource">
+                  <option value="ring">ring</option>
+                  <option value="manual">manual</option>
+                  <option value="system">system</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Event Type</label>
+                <input
+                  id="cType"
+                  type="text"
+                  placeholder="e.g. person_detected"
+                  list="typeList"
+                />
+                <datalist id="typeList">
+                  <option value="person_detected" />
+                  <option value="door_activity" />
+                  <option value="window_activity" />
+                  <option value="motion" />
+                  <option value="vehicle_detected" />
+                  <option value="package_detected" />
+                  <option value="package_theft" />
+                  <option value="no_response" />
+                  <option value="fall_detected" />
+                  <option value="routine_deviation" />
+                  <option value="medication_missed" />
+                  <option value="doorbell" />
+                </datalist>
+              </div>
+              <div class="form-row">
+                <label>Location</label>
+                <input
+                  id="cLocation"
+                  type="text"
+                  placeholder="e.g. front_door"
+                  list="locList"
+                />
+                <datalist id="locList">
+                  <option value="front_door" />
+                  <option value="back_door" />
+                  <option value="garage" />
+                  <option value="driveway" />
+                  <option value="side_yard" />
+                  <option value="back_yard" />
+                  <option value="porch" />
+                  <option value="kitchen" />
+                  <option value="bedroom" />
+                  <option value="bathroom" />
+                  <option value="living_room" />
+                </datalist>
+              </div>
+              <div class="form-row">
+                <label>Timestamp (optional)</label>
+                <input id="cTimestamp" type="datetime-local" />
+              </div>
+              <button class="fire-btn" onclick="runCustom()">
+                ⚡ Fire Event
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="updated" id="updated"></div>
-  </div>
+    <!-- STATUS BAR -->
+    <div id="statusbar">
+      <span id="sbIncidents">● 0 active incidents</span>
+      <span id="sbEvents">● 0 events</span>
+      <span id="sbUpdated"></span>
+    </div>
 
-<script>
-  function dotClass(tier) {
-    if (tier === "escalate") return "red";
-    if (tier === "ask") return "yellow";
-    return "green";
-  }
+    <!-- TOAST -->
+    <div id="toast"></div>
 
-  function renderMembers(members) {
-    const el = document.getElementById("members");
-    if (!members.length) {
-      el.innerHTML = '<div class="empty">No household members on file.</div>';
-      return;
-    }
-    el.innerHTML = members.map(m => `
-      <div class="status-row">
-        <div>
-          <div class="label"><span class="dot ${m.status === 'home' ? 'green' : m.status === 'unknown' ? 'yellow' : 'green'}"></span>${m.name} — ${m.role}</div>
-          <div class="sub">${m.routine ?? ''}</div>
+    <script>
+      // clock
+      function tickClock() {
+        document.getElementById("clock").textContent =
+          new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          });
+      }
+      tickClock();
+      setInterval(tickClock, 1000);
+
+      // MCP helper
+      async function mcp(tool, args) {
+        const res = await fetch("/mcp", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json, text/event-stream",
+          },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "tools/call",
+            params: { name: tool, arguments: args },
+          }),
+        });
+        const raw = await res.text();
+        const dataLine = raw.split("\n").find((l) => l.startsWith("data:"));
+        const envelope = JSON.parse(dataLine ? dataLine.slice(5).trim() : raw);
+        const inner = envelope.result?.content?.[0]?.text;
+        return inner ? JSON.parse(inner) : envelope;
+      }
+
+      // fire single event + create incident
+      async function fireEvent(source, type, location, timestamp) {
+        const args = { source, type, location };
+        if (timestamp) args.timestamp = timestamp;
+        const { decision } = await mcp("report_event", args);
+        await mcp("create_incident", {
+          type: type.replace(/_/g, " "),
+          reasoning: decision.reasoning,
+          tier: decision.tier,
+          confidence: decision.confidence,
+        });
+        return decision;
+      }
+
+      // fire multiple events, create incident from last decision
+      async function fireEvents(events) {
+        let decision;
+        for (const e of events) {
+          const r = await mcp("report_event", e);
+          decision = r.decision;
+        }
+        await mcp("create_incident", {
+          type: "event cluster",
+          reasoning: decision.reasoning,
+          tier: decision.tier,
+          confidence: decision.confidence,
+        });
+        return decision;
+      }
+
+      function simBtns(disabled) {
+        document
+          .querySelectorAll(".sim-btn, .fire-btn")
+          .forEach((b) => (b.disabled = disabled));
+      }
+
+      // single-event scenarios
+      async function run(source, type, location, visitorOffset) {
+        simBtns(true);
+        try {
+          let ts;
+          if (visitorOffset === 1) {
+            const d = new Date();
+            d.setDate(d.getDate() + ((1 + 7 - d.getDay()) % 7 || 7));
+            d.setHours(10, 30, 0, 0);
+            ts = d.toISOString();
+          } else if (visitorOffset === -1) {
+            const d = new Date();
+            d.setDate(d.getDate() - ((d.getDay() + 1) % 7 || 7));
+            d.setHours(20, 0, 0, 0);
+            ts = d.toISOString();
+          }
+          toast(await fireEvent(source, type, location, ts));
+          refresh();
+        } catch (e) {
+          toastError(e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runNight(source, type, location) {
+        simBtns(true);
+        try {
+          const d = new Date();
+          d.setHours(0, 45, 0, 0);
+          toast(await fireEvent(source, type, location, d.toISOString()));
+          refresh();
+        } catch (e) {
+          toastError(e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runOutsideWindow(source, type, location) {
+        simBtns(true);
+        try {
+          const d = new Date();
+          d.setHours(7, 0, 0, 0);
+          toast(await fireEvent(source, type, location, d.toISOString()));
+          refresh();
+        } catch (e) {
+          toastError(e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runEarlyReturn(source, type, location) {
+        simBtns(true);
+        try {
+          const d = new Date();
+          if (d.getDay() === 0) d.setDate(d.getDate() + 1);
+          if (d.getDay() === 6) d.setDate(d.getDate() + 2);
+          d.setHours(11, 0, 0, 0);
+          toast(await fireEvent(source, type, location, d.toISOString()));
+          refresh();
+        } catch (e) {
+          toastError(e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      // pattern scenarios
+      async function runPattern() {
+        simBtns(true);
+        try {
+          const b = Date.now();
+          toast(
+            await fireEvents([
+              {
+                source: "ring",
+                type: "motion",
+                location: "side_yard",
+                timestamp: new Date(b - 8 * 60000).toISOString(),
+              },
+              {
+                source: "ring",
+                type: "door_activity",
+                location: "back_door",
+                timestamp: new Date(b - 4 * 60000).toISOString(),
+              },
+              {
+                source: "ring",
+                type: "window_activity",
+                location: "garage",
+                timestamp: new Date(b).toISOString(),
+              },
+            ]),
+          );
+          refresh();
+        } catch (e) {
+          toastError(e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runNightCluster() {
+        simBtns(true);
+        try {
+          const base = new Date();
+          base.setHours(23, 5, 0, 0);
+          const t = base.getTime();
+          toast(
+            await fireEvents([
+              {
+                source: "ring",
+                type: "motion",
+                location: "back_yard",
+                timestamp: new Date(t).toISOString(),
+              },
+              {
+                source: "ring",
+                type: "door_activity",
+                location: "back_door",
+                timestamp: new Date(t + 3 * 60000).toISOString(),
+              },
+              {
+                source: "ring",
+                type: "window_activity",
+                location: "bedroom",
+                timestamp: new Date(t + 6 * 60000).toISOString(),
+              },
+            ]),
+          );
+          refresh();
+        } catch (e) {
+          toastError(e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runRepeatedDoorbell() {
+        simBtns(true);
+        try {
+          const b = Date.now();
+          toast(
+            await fireEvents([
+              {
+                source: "ring",
+                type: "doorbell",
+                location: "front_door",
+                timestamp: new Date(b - 5 * 60000).toISOString(),
+              },
+              {
+                source: "ring",
+                type: "doorbell",
+                location: "front_door",
+                timestamp: new Date(b - 3 * 60000).toISOString(),
+              },
+              {
+                source: "ring",
+                type: "doorbell",
+                location: "front_door",
+                timestamp: new Date(b).toISOString(),
+              },
+            ]),
+          );
+          refresh();
+        } catch (e) {
+          toastError(e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runGhostMotion() {
+        simBtns(true);
+        try {
+          toast(await fireEvent("ring", "motion", "living_room"));
+          refresh();
+        } catch (e) {
+          toastError(e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      // custom form
+      async function runCustom() {
+        const source = document.getElementById("cSource").value;
+        const type = document.getElementById("cType").value.trim();
+        const location = document.getElementById("cLocation").value.trim();
+        const tsRaw = document.getElementById("cTimestamp").value;
+        if (!type || !location) {
+          toastError("Type and Location are required.");
+          return;
+        }
+        simBtns(true);
+        try {
+          const ts = tsRaw ? new Date(tsRaw).toISOString() : undefined;
+          toast(await fireEvent(source, type, location, ts));
+          refresh();
+        } catch (e) {
+          toastError(e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      // toast
+      let toastTimer;
+      function toast(decision) {
+        const el = document.getElementById("toast");
+        const tier = decision.tier ?? "ask";
+        el.className = `${tier} show`;
+        el.innerHTML = `<strong style="text-transform:uppercase;letter-spacing:.06em">${tier}</strong> &nbsp;·&nbsp; ${decision.action.replace(/_/g, " ")}<br>
+      <span style="opacity:.85">${decision.reasoning}</span><br>
+      <span style="opacity:.5;font-size:11px">confidence ${decision.confidence}%${decision.policyId ? " · " + decision.policyId : ""}</span>`;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          el.className = "";
+        }, 7000);
+      }
+      function toastError(msg) {
+        const el = document.getElementById("toast");
+        el.className = "error show";
+        el.textContent = "⚠ " + msg;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          el.className = "";
+        }, 5000);
+      }
+
+      // monitoring
+      let monitoringState = false;
+      async function toggleMonitoring() {
+        monitoringState = !monitoringState;
+        await mcp("set_monitoring", { active: monitoringState });
+        refresh();
+      }
+
+      // render
+      const AVATARS = {
+        owner: "👤",
+        parent: "👵",
+        child: "🧒",
+        caregiver: "🩺",
+        other: "👤",
+      };
+
+      function renderMembers(members) {
+        document.getElementById("members").innerHTML = members
+          .map(
+            (m) => `
+      <div class="member-row">
+        <div class="member-left">
+          <div class="avatar">${AVATARS[m.role] ?? "👤"}</div>
+          <div>
+            <div class="member-name">${m.name}</div>
+            <div class="member-role">${m.role}${m.vulnerable ? " · <span style='color:var(--yellow)'>vulnerable</span>" : ""}</div>
+          </div>
         </div>
-        <div class="sub">${m.status ?? 'unknown'}</div>
-      </div>
-    `).join("");
-  }
+        <span class="status-badge ${m.status ?? "unknown"}">${(m.status ?? "unknown").toUpperCase()}</span>
+      </div>`,
+          )
+          .join("");
+      }
 
-  function renderIncidents(incidents) {
-    const el = document.getElementById("incidents");
-    if (!incidents.length) {
-      el.innerHTML = '<div class="empty">🟢 All clear — no active incidents.</div>';
-      return;
-    }
-    el.innerHTML = incidents.map(i => `
-      <div class="incident">
-        <span class="tier ${i.tier ?? 'ask'}">${(i.tier ?? 'ask').toUpperCase()}</span>
-        <div class="reasoning">${i.reasoning ?? i.type}</div>
-        <div class="confidence">Confidence: ${i.confidence ?? '—'}%</div>
-        <div class="actions">
-          <button onclick="act('${i.id}', 'resolve')">Contact / Resolve</button>
-          <button class="escalate" onclick="act('${i.id}', 'escalate')">Escalate</button>
+      function renderEvents(events) {
+        const el = document.getElementById("eventFeed");
+        if (!events.length) {
+          el.innerHTML =
+            '<div style="color:var(--muted);font-size:12px;padding:10px 16px">No events yet.</div>';
+          return;
+        }
+        el.innerHTML = events
+          .map(
+            (e) => `
+      <div class="event-item">
+        <span class="event-dot"></span>
+        <div style="flex:1;min-width:0">
+          <div class="event-type">${e.type.replace(/_/g, " ")}</div>
+          <div class="event-loc">📍 ${e.location} · ${e.source}</div>
         </div>
-      </div>
-    `).join("");
-  }
+        <span class="event-time">${new Date(e.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+      </div>`,
+          )
+          .join("");
+      }
 
-  async function act(id, action) {
-    await fetch(`/api/incidents/${id}/${action}`, { method: "POST" });
-    refresh();
-  }
+      function renderIncidents(incidents) {
+        const el = document.getElementById("incidents");
+        if (!incidents.length) {
+          el.innerHTML = `<div class="all-clear"><div class="icon">🟢</div><div class="msg">All clear — no active incidents</div></div>`;
+          return;
+        }
+        el.innerHTML = incidents
+          .map((i) => {
+            const tier = i.tier ?? "ask";
+            return `<div class="incident-card tier-${tier}">
+        <div class="incident-header">
+          <span class="incident-type">${i.type.replace(/_/g, " ")}</span>
+          <span class="tier-pill ${tier}">${tier.toUpperCase()}</span>
+        </div>
+        <div class="incident-reasoning">${i.reasoning ?? "—"}</div>
+        <div class="incident-meta">
+          <span class="conf-label">Confidence ${i.confidence ?? 0}%</span>
+          <div class="conf-bar-wrap"><div class="conf-bar ${tier}" style="width:${i.confidence ?? 0}%"></div></div>
+        </div>
+        <div class="incident-actions">
+          <button class="btn" onclick="act('${i.id}','resolve')">✅ Resolve</button>
+          <button class="btn danger" onclick="act('${i.id}','escalate')">🚨 Escalate</button>
+        </div>
+      </div>`;
+          })
+          .join("");
+      }
 
-  async function refresh() {
-    try {
-      const res = await fetch("/api/status");
-      const data = await res.json();
-      const pill = document.getElementById("monitoringPill");
-      pill.textContent = data.monitoringActive ? "Monitoring active" : "Monitoring off";
-      pill.className = "monitoring-pill" + (data.monitoringActive ? " active" : "");
-      renderMembers(data.members || []);
-      renderIncidents(data.activeIncidents || []);
-      document.getElementById("updated").textContent = "Updated " + new Date().toLocaleTimeString();
-    } catch (e) {
-      console.error("Guardian dashboard: refresh failed", e);
-    }
-  }
+      async function act(id, action) {
+        await fetch(`/api/incidents/${id}/${action}`, { method: "POST" });
+        refresh();
+      }
 
-  refresh();
-  setInterval(refresh, 3000);
-</script>
-</body>
+      async function refresh() {
+        try {
+          const [status, events] = await Promise.all([
+            fetch("/api/status").then((r) => r.json()),
+            fetch("/api/events?limit=15").then((r) => r.json()),
+          ]);
+          monitoringState = !!status.monitoringActive;
+          document.getElementById("monBtn").className = monitoringState
+            ? "active"
+            : "";
+          document.getElementById("monLabel").textContent = monitoringState
+            ? "MONITORING ON"
+            : "MONITORING OFF";
+          renderMembers(status.members || []);
+          renderIncidents(status.activeIncidents || []);
+          renderEvents(events || []);
+          const inc = (status.activeIncidents || []).length;
+          document.getElementById("sbIncidents").textContent =
+            `● ${inc} active incident${inc !== 1 ? "s" : ""}`;
+          document.getElementById("sbEvents").textContent =
+            `● ${(events || []).length} events`;
+          document.getElementById("sbUpdated").textContent =
+            "Updated " + new Date().toLocaleTimeString();
+        } catch (e) {
+          console.error("refresh failed", e);
+        }
+      }
+
+      refresh();
+      setInterval(refresh, 3000);
+    </script>
+  </body>
 </html>

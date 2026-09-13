@@ -90,10 +90,11 @@ export function registerGuardianTools(server: McpServer) {
         source: z.enum(["ring", "manual", "system"]),
         type: z.string(),
         location: z.string(),
+        timestamp: z.string().optional(),
       },
     },
-    async ({ source, type, location }) => {
-      const event = await store.addEvent({ source, type, location });
+    async ({ source, type, location, timestamp }) => {
+      const event = await store.addEvent({ source, type, location, timestamp });
       const decision = await decide(event);
       return text({ event, decision });
     },

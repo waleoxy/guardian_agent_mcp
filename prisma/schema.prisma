@@ -1,0 +1,109 @@
+// Guardian's Postgres schema, mapped 1:1 to the domain model in
+// src/types/domain.ts. This is a local/dev-friendly alternative to
+// DynamoStore, not a replacement for it — see src/store/postgresStore.ts
+// and the STORE_BACKEND env var in src/store/index.ts.
+
+generator client {
+  provider   = "prisma-client"
+  output     = "../src/generated/prisma"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PersonRole {
+  owner
+  parent
+  child
+  caregiver
+  other
+}
+
+enum MemberStatus {
+  home
+  away
+  unknown
+}
+
+enum ActionTier {
+  inform
+  ask
+  escalate
+}
+
+enum IncidentStatus {
+  open
+  awaiting_response
+  resolved
+  escalated
+}
+
+model Member {
+  id         String        @id
+  name       String
+  role       PersonRole
+  routine    String?
+  vulnerable Boolean       @default(false)
+  status     MemberStatus?
+  lastSeenAt DateTime?
+
+  @@map("members")
+}
+
+model Visitor {
+  id              String @id
+  label           String
+  dayOfWeek       Int
+  timeWindowStart String
+  timeWindowEnd   String
+
+  @@map("visitors")
+}
+
+model Policy {
+  id          String     @id
+  description String
+  eventType   String?
+  location    String?
+  tier        ActionTier
+  notes       String?
+
+  @@map("policies")
+}
+
+model Event {
+  id        String   @id @default(uuid())
+  source    String
+  type      String
+  location  String
+  timestamp DateTime @default(now())
+  raw       Json?
+
+  @@index([timestamp])
+  @@map("events")
+}
+
+model Incident {
+  id              String         @id @default(uuid())
+  type            String
+  status          IncidentStatus
+  subjectMemberId String?
+  relatedEventIds String[]       @default([])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  reasoning       String?
+  confidence      Int?
+  tier            ActionTier?
+
+  @@index([status])
+  @@map("incidents")
+}
+
+model Config {
+  key   String  @id
+  value Boolean
+
+  @@map("config")
+}

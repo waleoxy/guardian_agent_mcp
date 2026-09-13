@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { app } from "./app";
 
 // Local-dev / long-running-server entry point. For the Lambda +

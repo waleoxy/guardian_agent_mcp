@@ -88,9 +88,9 @@ export class DynamoStore implements IGuardianStore {
 
   async addEvent(input: NewEventInput): Promise<HouseholdEvent> {
     const event: HouseholdEvent = {
+      ...input,
       id: randomUUID(),
       timestamp: input.timestamp ?? new Date().toISOString(),
-      ...input,
     };
     await this.client.send(
       new PutCommand({ TableName: TABLES.events, Item: event }),

@@ -56,9 +56,9 @@ export class MemoryStore implements IGuardianStore {
 
   async addEvent(input: NewEventInput): Promise<HouseholdEvent> {
     const event: HouseholdEvent = {
+      ...input,
       id: randomUUID(),
       timestamp: input.timestamp ?? new Date().toISOString(),
-      ...input,
     };
     this.events.unshift(event);
     return event;

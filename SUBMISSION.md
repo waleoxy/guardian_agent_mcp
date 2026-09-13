@@ -25,11 +25,16 @@ authorization, no matter how confident it is.
 Three things we built specifically to prove this isn't "event → push
 notification with extra steps":
 
-1. **It refuses.** Shown an unknown person at the front door while the
-   owner is away, Guardian's default response isn't "notify" — it's an
-   explicit statement that it won't unlock the door, because that
-   policy is a hard constraint no decision engine (rule-based or
-   Bedrock) can override. See `DEMO_SCRIPT.md`, Demo B.
+1. **It's context-aware, and it refuses regardless of tier.** The
+   identical "unknown person at the front door" event resolves
+   differently depending on household context — a scheduled visitor
+   gets a simple notify (Scenario A), the vulnerable member being home
+   gets an "should I check on her?" ask (Scenario C), an away owner
+   with no one vulnerable home gets a plain notify + Fire TV alert
+   (Scenario B). What's constant across all of them: Guardian never
+   proposes unlocking the door, no matter which tier or which decision
+   engine (rule-based or Bedrock) resolves the event. See
+   `DEMO_SCRIPT.md`, Demo B.
 2. **It reasons across events, not just about one.** Three
    individually-unremarkable events (motion, then door activity, then
    window activity) across different parts of the house in a short

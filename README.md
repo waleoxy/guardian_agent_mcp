@@ -55,8 +55,11 @@ product; MCP and EventBridge are just two doors into it.
 - `addon-package/addon.json` — the Alexa+ add-on manifest, built to
   Amazon's real MCP Toolkit schema, with placeholders for what only you can provide
 - `src/__tests__/decisionEngine.test.ts` — automated tests for all four
-  demo scenarios (A/B/C-equivalent-default/D) plus a regression test
-  for a real bug the tests themselves caught (see below)
+  demo scenarios (A/B/C/D) plus the fallback path and two regression
+  guards for real bugs the tests themselves caught (see below)
+- `src/__tests__/store.test.ts` — regression test for a bug in
+  `addEvent`'s timestamp handling, found via live testing rather than
+  the existing suite (see below)
 - `.github/workflows/ci.yml` — typecheck + build + test on every push/PR
 - `infra/*.sh` — raw AWS CLI fallback if you need to provision outside of SAM
 
@@ -90,10 +93,13 @@ curl -s -X POST http://localhost:3000/mcp \
   }'
 ```
 
-This is the "unknown person at the door" scenario from the demo
-script. It returns a `tier: "escalate"` decision citing the
-never-auto-unlock hard-constraint policy — no Alexa+ or real Ring
-device required to see it work.
+This is the "unknown visitor at the door" scenario from the demo
+script. With the seeded household (Mary home and marked vulnerable),
+it returns a `tier: "ask"` decision asking whether Mary needs
+anything — Scenario C from the design doc — and the reasoning always
+includes "I won't unlock the door without your confirmation" no matter
+which tier resolves the event. No Alexa+ or real Ring device required
+to see it work.
 
 Call `initialize` then `tools/list` first if you want the full tool
 catalog and schemas (any MCP client, or curl with an
@@ -131,11 +137,9 @@ Requires `DECISION_ENGINE=bedrock` (or just Bedrock credentials present
 this one). Without credentials it fails loudly and explains why,
 rather than crashing or silently guessing.
 
-## Bugs found by writing tests
+## Bugs and gaps found along the way
 
-Worth documenting honestly rather than glossing over — writing the
-test suite surfaced two real correctness bugs that manual curl testing
-had missed:
+Worth documenting honestly rather than glossing over:
 
 1. **The hard constraint was too broad.** `p-never-auto-unlock` matched
    *any* `person_detected` event, so a scheduled visitor (e.g. the
@@ -143,16 +147,51 @@ had missed:
    trigger the same "I won't unlock the door" refusal as a genuinely
    unknown visitor — Scenario A from the design doc was never actually
    achievable. Fixed by adding an expected-visitor context check that
-   runs first.
+   runs first. *(Found by writing tests.)*
 2. **A catch-all policy was silently matching everything.**
    `p-quiet-hours` had an empty `appliesTo`, which the original
    `matches()` function treated as "matches any event" — meaning it
    won before the intended hardcoded default ever ran, making that
    default dead code. Fixed by requiring policies to specify at least
-   one criterion to auto-match, and having the fallback path
-   explicitly look up a catch-all policy instead.
+   one criterion to auto-match. *(Found by writing tests.)*
+3. **Scenarios B and C didn't exist, and the "refusal" demo was
+   tier-mislabeled.** The original build only ever implemented
+   Scenario A (expected visitor) and D (pattern escalation) — B (owner
+   away → simple notify) and C (vulnerable member home → ask if
+   assistance is needed) were never coded. Worse: the "AI refuses an
+   unsafe action" demo moment was hardcoded to `tier: "escalate"` at
+   95% confidence, which doesn't match the design doc's own transcript
+   for that exact situation ("I'll notify you and continue
+   monitoring" — restrained, not urgent) and contradicts the Bedrock
+   engine's own system prompt, which explicitly says to use escalate
+   sparingly. Fixed by implementing `checkVulnerableMemberHome` (C) and
+   `checkOwnerAway` (B) as real context checks, and folding the
+   never-auto-unlock constraint into normal policy resolution so its
+   *tier* follows context (inform/ask) while the refusal language
+   itself stays constant across every tier. *(Found by a direct
+   question — "did we only have A and D, is there B and C" — not by
+   the test suite. The lesson: passing tests only prove the code does
+   what the tests assume it should; they don't catch a scenario that
+   was never implemented or a demo that was confidently mislabeled.)*
 
-Both are now regression-tested in `decisionEngine.test.ts`.
+All three are now regression-tested in `decisionEngine.test.ts`.
+
+4. **Adding the `timestamp` override itself introduced a new bug.**
+   `tools.ts`'s `{ source, type, location, timestamp }` object literal
+   always creates an own `timestamp` property — `undefined` when the
+   caller omits it, but present nonetheless. `addEvent`'s object spread
+   was ordered `{ timestamp: computedDefault, ...input }`, so that
+   explicit `undefined` silently overwrote the computed default —
+   every event created without an explicit timestamp ended up with
+   *no* timestamp at all, which broke Scenario D's pattern detection
+   (it filters by timestamp). Caught by live-testing all four
+   scenarios end to end after the B/C fix, not by the existing test
+   suite — every existing test happened to always pass an explicit
+   timestamp. Fixed by reordering the spread so `id`/`timestamp` are
+   always assigned *after* the spread, and added a targeted regression
+   test (`store.test.ts`) that reproduces the exact input shape
+   `tools.ts` produces — verified to fail against the old code before
+   confirming the fix.
 
 ## Deploying (Lambda + API Gateway + DynamoDB + EventBridge)
 

@@ -62,7 +62,7 @@ export const seedPolicies: Policy[] = [
     id: "p-never-auto-unlock",
     description: "Never unlock the door automatically.",
     appliesTo: { eventType: "person_detected" },
-    tier: "escalate",
+    tier: "ask",
     notes:
       "Hard constraint: unlocking always requires explicit user confirmation regardless of confidence.",
   },

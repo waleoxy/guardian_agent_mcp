@@ -15,7 +15,9 @@ function text(payload: unknown) {
 function notFound(what: string, id: string) {
   return {
     isError: true,
-    content: [{ type: "text" as const, text: `No ${what} found with id ${id}` }],
+    content: [
+      { type: "text" as const, text: `No ${what} found with id ${id}` },
+    ],
   };
 }
 
@@ -90,7 +92,12 @@ export function registerGuardianTools(server: McpServer) {
         source: z.enum(["ring", "manual", "system"]),
         type: z.string(),
         location: z.string(),
-        timestamp: z.string().optional(),
+        timestamp: z
+          .string()
+          .optional()
+          .describe(
+            "ISO timestamp override, for demo/testing control over day-of-week/time-sensitive scenarios (e.g. forcing an event into an expected visitor's window regardless of the actual current time). Defaults to now.",
+          ),
       },
     },
     async ({ source, type, location, timestamp }) => {
@@ -161,7 +168,8 @@ export function registerGuardianTools(server: McpServer) {
     "create_incident",
     {
       title: "Create incident",
-      description: "Creates a new incident of a given type, e.g. unknown_visitor.",
+      description:
+        "Creates a new incident of a given type, e.g. unknown_visitor.",
       inputSchema: {
         type: z.string(),
         reasoning: z.string(),
@@ -171,7 +179,14 @@ export function registerGuardianTools(server: McpServer) {
         relatedEventIds: z.array(z.string()).optional(),
       },
     },
-    async ({ type, reasoning, tier, confidence, subjectMemberId, relatedEventIds }) => {
+    async ({
+      type,
+      reasoning,
+      tier,
+      confidence,
+      subjectMemberId,
+      relatedEventIds,
+    }) => {
       const incident = await store.createIncident({
         type,
         status: "open",
@@ -189,8 +204,12 @@ export function registerGuardianTools(server: McpServer) {
     "resolve_incident",
     {
       title: "Resolve incident",
-      description: "Marks an incident as resolved, e.g. once a member responds.",
-      inputSchema: { incidentId: z.string(), resolutionNote: z.string().optional() },
+      description:
+        "Marks an incident as resolved, e.g. once a member responds.",
+      inputSchema: {
+        incidentId: z.string(),
+        resolutionNote: z.string().optional(),
+      },
     },
     async ({ incidentId, resolutionNote }) => {
       const existing = await store.getIncident(incidentId);

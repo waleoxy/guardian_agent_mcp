@@ -2,7 +2,7 @@ import { store } from "./store";
 import { Decision, HouseholdEvent, Policy } from "./types/domain";
 
 /**
- * Rule-based decision engine. This is the safety-net implementation:checkExpectedVisitor
+ * Rule-based decision engine. This is the safety-net implementation:
  * zero AWS dependency, deterministic, always available. Used directly
  * when DECISION_ENGINE=rules, and as the automatic fallback inside
  * bedrockDecisionEngine.ts when a live Bedrock call fails.
@@ -14,28 +14,24 @@ export async function decide(event: HouseholdEvent): Promise<Decision> {
   const expectedVisitorDecision = await checkExpectedVisitor(event);
   if (expectedVisitorDecision) return expectedVisitorDecision;
 
-  const policies = await store.listPolicies();
+  const vulnerableMemberDecision = await checkVulnerableMemberHome(event);
+  if (vulnerableMemberDecision) return vulnerableMemberDecision;
 
-  const hardConstraint = policies.find(
-    (p) => p.notes?.includes("Hard constraint") && matches(p, event),
-  );
-  if (hardConstraint) {
-    return {
-      tier: "escalate",
-      action: "no_autonomous_action",
-      reasoning: `${event.type} at ${event.location} observed. I won't take an unsafe action here — "${hardConstraint.description}" is a hard constraint. Notifying you and continuing to monitor.`,
-      confidence: 95,
-      policyId: hardConstraint.id,
-    };
-  }
+  const ownerAwayDecision = await checkOwnerAway(event);
+  if (ownerAwayDecision) return ownerAwayDecision;
+
+  const policies = await store.listPolicies();
 
   const matching = policies.find((p) => matches(p, event));
   if (matching) {
+    const isHardConstraint = matching.notes?.includes("Hard constraint");
     return {
       tier: matching.tier,
       action: actionFor(matching.tier),
-      reasoning: `${event.type} at ${event.location}. Applying policy: "${matching.description}"`,
-      confidence: 80,
+      reasoning: isHardConstraint
+        ? `${event.type} at ${event.location} observed, with no context resolving whether it's expected. I won't unlock the door or take further action regardless of confidence — "${matching.description}" is a hard constraint. Just asking you before doing anything else.`
+        : `${event.type} at ${event.location}. Applying policy: "${matching.description}"`,
+      confidence: isHardConstraint ? 75 : 80,
       policyId: matching.id,
     };
   }
@@ -161,6 +157,69 @@ function matches(policy: Policy, event: HouseholdEvent): boolean {
   if (eventType && eventType !== event.type) return false;
   if (location && location !== event.location) return false;
   return true;
+}
+
+/**
+ * Scenario C from the design doc: "elderly parent home" -> ask
+ * whether assistance is needed, rather than a generic notify. Checked
+ * before the away-owner case (B): in this seeded household Mary is
+ * both vulnerable and marked "home", so with the seed data as-is, C
+ * legitimately takes precedence over B for the same front-door event
+ * — a deliberate product choice (a vulnerable person's situation is
+ * more time-sensitive than a routine away-notification), not an
+ * accident of ordering. checkOwnerAway is exported and independently
+ * testable so B's own logic is still verified even though this
+ * household's fixed seed data means C usually wins the race with it.
+ */
+const VULNERABLE_CHECK_TYPES = new Set(["person_detected", "door_activity"]);
+
+export async function checkVulnerableMemberHome(
+  event: HouseholdEvent,
+): Promise<Decision | null> {
+  if (!VULNERABLE_CHECK_TYPES.has(event.type)) return null;
+
+  const members = await store.listMembers();
+  const vulnerableHome = members.find(
+    (m) => m.vulnerable && m.status === "home",
+  );
+  if (!vulnerableHome) return null;
+
+  return {
+    tier: "ask",
+    action: "ask_whether_assistance_needed",
+    reasoning: `${event.type} at ${event.location} while ${vulnerableHome.name} is home. Want me to check whether ${vulnerableHome.name} needs anything, or just keep monitoring? Either way, I won't unlock the door without your confirmation.`,
+    confidence: 75,
+  };
+}
+
+/**
+ * Scenario B from the design doc: owner away, unknown visitor at the
+ * door -> notify (+ Fire TV alert on the dashboard), explicitly *not*
+ * an escalation. The doc's own demo transcript for this exact
+ * situation is "I'll notify you and continue monitoring" — restrained,
+ * not urgent — which is why this resolves to "inform", matching the
+ * Bedrock engine's own system-prompt instruction to use "escalate"
+ * sparingly rather than as the default for an ordinary unknown visitor.
+ */
+const AWAY_CHECK_TYPES = new Set(["person_detected", "door_activity"]);
+
+export async function checkOwnerAway(
+  event: HouseholdEvent,
+): Promise<Decision | null> {
+  if (!AWAY_CHECK_TYPES.has(event.type)) return null;
+
+  const members = await store.listMembers();
+  const ownerAway = members.some(
+    (m) => m.role === "owner" && m.status === "away",
+  );
+  if (!ownerAway) return null;
+
+  return {
+    tier: "inform",
+    action: "notify_owner_and_show_fire_tv_alert",
+    reasoning: `${event.type} at ${event.location} while you're away. Notifying you now and showing it on the dashboard. I won't unlock the door or contact emergency services based on this alone — just monitoring.`,
+    confidence: 80,
+  };
 }
 
 function actionFor(tier: Decision["tier"]): string {

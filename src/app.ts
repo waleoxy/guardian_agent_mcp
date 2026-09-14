@@ -92,6 +92,7 @@ app.post("/api/incidents/:id/escalate", async (req, res) => {
 });
 
 app.use(express.static(path.join(__dirname, "..", "public")));
+app.use("/fire-tv", express.static(path.join(__dirname, "..", "fire-tv")));
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", service: "guardian-mcp" });

@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Guardian Command Center</title>
+    <meta name="viewport" content="width=1920" />
+    <style>
+      /* ── Reset ── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg: #080b10;
+        --surface: #0f1520;
+        --surface2: #161e2e;
+        --border: #1e2d42;
+        --text: #e4eaf4;
+        --muted: #5a6a82;
+        --green: #2ecc8a;
+        --yellow: #f5c842;
+        --red: #f04f4f;
+        --blue: #4f8ef5;
+        --purple: #a78bfa;
+        --focus: #4f8ef5;
+        --focus-glow: rgba(79,142,245,0.35);
+        --green-dim: rgba(46,204,138,0.12);
+        --yellow-dim: rgba(245,200,66,0.12);
+        --red-dim: rgba(240,79,79,0.12);
+        --blue-dim: rgba(79,142,245,0.12);
+      }
+
+      html, body {
+        width: 1920px; height: 1080px;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 18px;
+      }
+
+      /* ── Focus ring — the only interactive feedback on TV ── */
+      :focus { outline: none; }
+      .focusable:focus {
+        outline: 3px solid var(--focus);
+        outline-offset: 3px;
+        box-shadow: 0 0 0 6px var(--focus-glow);
+      }
+
+      /* ── Layout: topbar + 3-column main + statusbar ── */
+      #app {
+        display: grid;
+        grid-template-rows: 72px 1fr 48px;
+        height: 1080px;
+      }
+
+      /* ── Top bar ── */
+      #topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 48px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .brand {
+        display: flex; align-items: center; gap: 14px;
+        font-size: 26px; font-weight: 800; letter-spacing: 0.12em;
+      }
+      .brand-sub { font-size: 13px; color: var(--muted); font-weight: 400; }
+      .topbar-right { display: flex; align-items: center; gap: 24px; }
+      #clock { font-size: 22px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+      #monBtn {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 24px; border-radius: 999px;
+        border: 2px solid var(--border);
+        background: transparent; color: var(--muted);
+        font-size: 15px; font-weight: 700; letter-spacing: 0.08em;
+        cursor: pointer; transition: all 0.2s;
+      }
+      #monBtn .led {
+        width: 10px; height: 10px; border-radius: 50%;
+        background: var(--muted); transition: all 0.3s;
+      }
+      #monBtn.active { border-color: var(--green); color: var(--green); }
+      #monBtn.active .led { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+      /* ── 3-column main ── */
+      #main {
+        display: grid;
+        grid-template-columns: 420px 1fr 460px;
+        overflow: hidden;
+      }
+      .col {
+        display: flex; flex-direction: column;
+        overflow: hidden;
+        border-right: 1px solid var(--border);
+      }
+      .col:last-child { border-right: none; }
+      .col-header {
+        padding: 16px 24px 14px;
+        border-bottom: 1px solid var(--border);
+        font-size: 11px; text-transform: uppercase;
+        letter-spacing: 0.14em; color: var(--muted);
+        flex-shrink: 0;
+      }
+      .col-body { flex: 1; overflow: hidden; }
+
+      /* ── Members ── */
+      .member-row {
+        display: flex; align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border);
+      }
+      .member-left { display: flex; align-items: center; gap: 16px; }
+      .avatar {
+        width: 48px; height: 48px; border-radius: 50%;
+        background: var(--surface2); border: 2px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px; flex-shrink: 0;
+      }
+      .member-name { font-size: 17px; font-weight: 700; }
+      .member-role { font-size: 13px; color: var(--muted); margin-top: 2px; }
+      .status-badge {
+        font-size: 12px; padding: 4px 14px; border-radius: 999px;
+        font-weight: 800; letter-spacing: 0.06em;
+      }
+      .status-badge.home { background: var(--green-dim); color: var(--green); }
+      .status-badge.away { background: var(--surface2); color: var(--muted); }
+      .status-badge.unknown { background: var(--yellow-dim); color: var(--yellow); }
+
+      /* ── Event feed ── */
+      .event-item {
+        display: flex; align-items: flex-start; gap: 12px;
+        padding: 12px 24px; border-bottom: 1px solid var(--border);
+      }
+      .event-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--blue); margin-top: 5px; flex-shrink: 0;
+      }
+      .event-type { font-size: 15px; font-weight: 700; }
+      .event-loc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+      .event-time {
+        font-size: 13px; color: var(--muted);
+        margin-left: auto; white-space: nowrap; padding-left: 12px;
+      }
+
+      /* ── Incidents ── */
+      .incident-card {
+        margin: 14px 16px;
+        border-radius: 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 20px 22px;
+      }
+      .incident-card.tier-escalate { border-left: 4px solid var(--red); }
+      .incident-card.tier-ask      { border-left: 4px solid var(--yellow); }
+      .incident-card.tier-inform   { border-left: 4px solid var(--blue); }
+      .incident-header {
+        display: flex; align-items: center;
+        justify-content: space-between; margin-bottom: 10px;
+      }
+      .incident-type {
+        font-size: 13px; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+      }
+      .tier-pill {
+        font-size: 12px; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        padding: 4px 12px; border-radius: 6px;
+      }
+      .tier-pill.escalate { background: var(--red-dim); color: var(--red); }
+      .tier-pill.ask      { background: var(--yellow-dim); color: var(--yellow); }
+      .tier-pill.inform   { background: var(--blue-dim); color: var(--blue); }
+      .incident-reasoning {
+        font-size: 15px; line-height: 1.6; margin-bottom: 14px;
+      }
+      .conf-row {
+        display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+      }
+      .conf-bar-wrap {
+        flex: 1; height: 4px; background: var(--border);
+        border-radius: 2px; overflow: hidden;
+      }
+      .conf-bar { height: 100%; border-radius: 2px; }
+      .conf-bar.escalate { background: var(--red); }
+      .conf-bar.ask      { background: var(--yellow); }
+      .conf-bar.inform   { background: var(--blue); }
+      .conf-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+      .incident-actions { display: flex; gap: 12px; }
+
+      /* ── Buttons — large for TV ── */
+      .btn {
+        flex: 1; padding: 14px 0;
+        border-radius: 10px; border: 2px solid var(--border);
+        background: transparent; color: var(--text);
+        font-size: 15px; font-weight: 700; cursor: pointer;
+        transition: all 0.15s;
+      }
+      .btn.focusable:focus {
+        background: var(--blue-dim);
+        border-color: var(--focus);
+        color: var(--blue);
+      }
+      .btn.danger.focusable:focus {
+        background: var(--red-dim);
+        border-color: var(--red);
+        color: var(--red);
+      }
+
+      .all-clear {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        height: 200px; gap: 14px; color: var(--muted);
+      }
+      .all-clear .icon { font-size: 56px; }
+      .all-clear .msg  { font-size: 18px; }
+
+      /* ── Right column: Guardian status panel ── */
+      .status-panel { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+      .status-block {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px 22px;
+      }
+      .status-block-title {
+        font-size: 11px; text-transform: uppercase;
+        letter-spacing: 0.12em; color: var(--muted); margin-bottom: 12px;
+      }
+      .status-value {
+        font-size: 28px; font-weight: 800; letter-spacing: 0.04em;
+      }
+      .status-value.green { color: var(--green); }
+      .status-value.yellow { color: var(--yellow); }
+      .status-value.red { color: var(--red); }
+      .status-value.muted { color: var(--muted); }
+
+      .action-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      }
+      .action-btn {
+        padding: 18px 12px; border-radius: 12px;
+        border: 2px solid var(--border); background: var(--surface2);
+        color: var(--text); font-size: 14px; font-weight: 700;
+        cursor: pointer; text-align: center; line-height: 1.4;
+        transition: all 0.15s;
+      }
+      .action-btn .a-icon { font-size: 24px; display: block; margin-bottom: 6px; }
+      .action-btn.focusable:focus {
+        border-color: var(--focus);
+        background: var(--blue-dim);
+        color: var(--blue);
+        box-shadow: 0 0 0 4px var(--focus-glow);
+        outline: none;
+      }
+
+      /* ── D-pad hint bar ── */
+      #dpad-hint {
+        position: fixed; bottom: 56px; left: 50%;
+        transform: translateX(-50%);
+        display: flex; gap: 20px; align-items: center;
+        background: rgba(15,21,32,0.92);
+        border: 1px solid var(--border);
+        border-radius: 999px; padding: 8px 24px;
+        font-size: 13px; color: var(--muted);
+        pointer-events: none;
+      }
+      .hint-key {
+        background: var(--surface2); border: 1px solid var(--border);
+        border-radius: 5px; padding: 2px 8px;
+        font-size: 12px; color: var(--text);
+      }
+
+      /* ── Status bar ── */
+      #statusbar {
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+        display: flex; align-items: center;
+        padding: 0 32px; gap: 28px;
+        font-size: 13px; color: var(--muted);
+      }
+
+      /* ── Toast ── */
+      #toast {
+        position: fixed; bottom: 72px; right: 24px;
+        max-width: 420px; padding: 16px 20px;
+        border-radius: 14px; font-size: 15px; line-height: 1.5;
+        border: 1px solid transparent;
+        opacity: 0; transform: translateY(8px);
+        transition: opacity 0.22s, transform 0.22s;
+        pointer-events: none; z-index: 50;
+      }
+      #toast.show { opacity: 1; transform: translateY(0); }
+      #toast.inform   { background: var(--blue-dim);   border-color: rgba(79,142,245,0.4); }
+      #toast.ask      { background: var(--yellow-dim);  border-color: rgba(245,200,66,0.4); }
+      #toast.escalate { background: var(--red-dim);     border-color: rgba(240,79,79,0.4); }
+      #toast.error    { background: var(--surface2);    border-color: var(--border); color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- TOP BAR -->
+      <div id="topbar">
+        <div class="brand">
+          <span>🛡️</span> GUARDIAN
+          <span class="brand-sub">HOUSEHOLD COMMAND CENTER</span>
+        </div>
+        <div class="topbar-right">
+          <span id="clock"></span>
+          <button id="monBtn" class="focusable" onclick="toggleMonitoring()">
+            <span class="led"></span>
+            <span id="monLabel">MONITORING OFF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- MAIN -->
+      <div id="main">
+        <!-- COL 1: Household + Events -->
+        <div class="col">
+          <div class="col-header">Household</div>
+          <div id="members" style="flex-shrink:0;border-bottom:1px solid var(--border)"></div>
+          <div class="col-header" style="border-top:none">Recent Events</div>
+          <div class="col-body" id="eventFeed" style="overflow:hidden"></div>
+        </div>
+
+        <!-- COL 2: Active Incidents -->
+        <div class="col">
+          <div class="col-header">Active Incidents</div>
+          <div class="col-body" id="incidents" style="overflow-y:auto"></div>
+        </div>
+
+        <!-- COL 3: Guardian Status + Actions -->
+        <div class="col">
+          <div class="col-header">Guardian Status</div>
+          <div class="col-body status-panel">
+
+            <div class="status-block">
+              <div class="status-block-title">System</div>
+              <div id="sysStatus" class="status-value muted">LOADING…</div>
+            </div>
+
+            <div class="status-block">
+              <div class="status-block-title">Active Incidents</div>
+              <div id="incCount" class="status-value green">0</div>
+            </div>
+
+            <div class="status-block">
+              <div class="status-block-title">Quick Actions</div>
+              <div class="action-grid">
+                <button class="action-btn focusable" onclick="toggleMonitoring()">
+                  <span class="a-icon">🔔</span>Toggle Monitor
+                </button>
+                <button class="action-btn focusable" onclick="checkStatus()">
+                  <span class="a-icon">📊</span>Refresh Status
+                </button>
+                <button class="action-btn focusable" onclick="runWellnessCheck()">
+                  <span class="a-icon">❤️</span>Wellness Check
+                </button>
+                <button class="action-btn focusable" onclick="viewPolicies()">
+                  <span class="a-icon">📋</span>View Policies
+                </button>
+              </div>
+            </div>
+
+            <div class="status-block" id="policyBlock" style="display:none">
+              <div class="status-block-title">Active Policies</div>
+              <div id="policyList" style="font-size:13px;color:var(--muted);line-height:1.8"></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- STATUS BAR -->
+      <div id="statusbar">
+        <span id="sbIncidents">● 0 active incidents</span>
+        <span id="sbEvents">● 0 events</span>
+        <span id="sbEngine">● engine: rules</span>
+        <span id="sbUpdated"></span>
+      </div>
+    </div>
+
+    <!-- D-PAD HINT -->
+    <div id="dpad-hint">
+      <span class="hint-key">▲▼◀▶</span> Navigate &nbsp;
+      <span class="hint-key">OK</span> Select &nbsp;
+      <span class="hint-key">↩</span> Back
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast"></div>
+
+    <script>
+      // ── Clock ──────────────────────────────────────────────────────────
+      function tickClock() {
+        document.getElementById('clock').textContent =
+          new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+      tickClock(); setInterval(tickClock, 1000);
+
+      // ── D-pad navigation ───────────────────────────────────────────────
+      // Fire TV remote sends standard key codes. We intercept arrow keys
+      // and move focus between all .focusable elements in DOM order.
+      const KEYS = { UP: 38, DOWN: 40, LEFT: 37, RIGHT: 39, ENTER: 13, BACK: 8 };
+
+      document.addEventListener('keydown', (e) => {
+        const focusables = Array.from(document.querySelectorAll('.focusable'));
+        const current = document.activeElement;
+        const idx = focusables.indexOf(current);
+
+        if (e.keyCode === KEYS.DOWN || e.keyCode === KEYS.RIGHT) {
+          e.preventDefault();
+          const next = focusables[idx + 1] || focusables[0];
+          next.focus();
+        } else if (e.keyCode === KEYS.UP || e.keyCode === KEYS.LEFT) {
+          e.preventDefault();
+          const prev = focusables[idx - 1] || focusables[focusables.length - 1];
+          prev.focus();
+        } else if (e.keyCode === KEYS.ENTER) {
+          if (current && current !== document.body) current.click();
+        } else if (e.keyCode === KEYS.BACK) {
+          // Back button: return focus to monitoring toggle
+          document.getElementById('monBtn').focus();
+        }
+      });
+
+      // Set initial focus
+      window.addEventListener('load', () => {
+        setTimeout(() => document.getElementById('monBtn').focus(), 300);
+      });
+
+      // ── MCP helper ─────────────────────────────────────────────────────
+      // Guardian's MCP server is at /mcp (same origin when served from
+      // the Guardian Express app). On Fire TV, the app is loaded from
+      // the Guardian server URL configured in the WAT manifest.
+      async function mcp(tool, args) {
+        const res = await fetch('/mcp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: tool, arguments: args } }),
+        });
+        const raw = await res.text();
+        const dataLine = raw.split('\n').find(l => l.startsWith('data:'));
+        const envelope = JSON.parse(dataLine ? dataLine.slice(5).trim() : raw);
+        const inner = envelope.result?.content?.[0]?.text;
+        return inner ? JSON.parse(inner) : envelope;
+      }
+
+      // ── Monitoring toggle ──────────────────────────────────────────────
+      let monitoringState = false;
+      async function toggleMonitoring() {
+        monitoringState = !monitoringState;
+        await mcp('set_monitoring', { active: monitoringState });
+        refresh();
+      }
+
+      // ── Wellness check ─────────────────────────────────────────────────
+      async function runWellnessCheck() {
+        try {
+          const result = await mcp('start_wellness_check', {
+            memberId: 'm-mary',
+            reason: 'Manual wellness check requested from Fire TV command center',
+          });
+          showToast('ask', '❤️ Wellness check started for Mary. Waiting for response.');
+          refresh();
+        } catch (e) { showToast('error', e.message); }
+      }
+
+      // ── View policies ──────────────────────────────────────────────────
+      async function viewPolicies() {
+        try {
+          const { policies } = await mcp('get_household_context', {});
+          const block = document.getElementById('policyBlock');
+          const list = document.getElementById('policyList');
+          list.innerHTML = policies.map(p =>
+            `<div style="margin-bottom:6px">• ${p.description} <span style="color:var(--blue)">[${p.tier}]</span></div>`
+          ).join('');
+          block.style.display = 'block';
+        } catch (e) { showToast('error', e.message); }
+      }
+
+      // ── Check status (manual refresh) ─────────────────────────────────
+      async function checkStatus() {
+        await refresh();
+        showToast('inform', '📊 Status refreshed.');
+      }
+
+      // ── Incident actions ───────────────────────────────────────────────
+      async function act(id, action) {
+        await fetch(`/api/incidents/${id}/${action}`, { method: 'POST' });
+        refresh();
+      }
+
+      // ── Render helpers ─────────────────────────────────────────────────
+      const AVATARS = { owner: '👤', parent: '👵', child: '🧒', caregiver: '🩺', other: '👤' };
+
+      function renderMembers(members) {
+        document.getElementById('members').innerHTML = members.map(m => `
+          <div class="member-row">
+            <div class="member-left">
+              <div class="avatar">${AVATARS[m.role] ?? '👤'}</div>
+              <div>
+                <div class="member-name">${m.name}</div>
+                <div class="member-role">${m.role}${m.vulnerable ? ' · <span style="color:var(--yellow)">vulnerable</span>' : ''}</div>
+              </div>
+            </div>
+            <span class="status-badge ${m.status ?? 'unknown'}">${(m.status ?? 'unknown').toUpperCase()}</span>
+          </div>`).join('');
+      }
+
+      function renderEvents(events) {
+        const el = document.getElementById('eventFeed');
+        if (!events.length) {
+          el.innerHTML = '<div style="color:var(--muted);font-size:14px;padding:14px 24px">No events yet.</div>';
+          return;
+        }
+        // Show only as many events as fit (no scroll on TV)
+        el.innerHTML = events.slice(0, 6).map(e => `
+          <div class="event-item">
+            <span class="event-dot"></span>
+            <div style="flex:1;min-width:0">
+              <div class="event-type">${e.type.replace(/_/g,' ')}</div>
+              <div class="event-loc">📍 ${e.location} · ${e.source}</div>
+            </div>
+            <span class="event-time">${new Date(e.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>
+          </div>`).join('');
+      }
+
+      function renderIncidents(incidents) {
+        const el = document.getElementById('incidents');
+        if (!incidents.length) {
+          el.innerHTML = '<div class="all-clear"><div class="icon">🟢</div><div class="msg">All clear — no active incidents</div></div>';
+          return;
+        }
+        el.innerHTML = incidents.map(i => {
+          const tier = i.tier ?? 'ask';
+          return `<div class="incident-card tier-${tier}">
+            <div class="incident-header">
+              <span class="incident-type">${i.type.replace(/_/g,' ')}</span>
+              <span class="tier-pill ${tier}">${tier.toUpperCase()}</span>
+            </div>
+            <div class="incident-reasoning">${i.reasoning ?? '—'}</div>
+            <div class="conf-row">
+              <span class="conf-label">Confidence ${i.confidence ?? 0}%</span>
+              <div class="conf-bar-wrap"><div class="conf-bar ${tier}" style="width:${i.confidence ?? 0}%"></div></div>
+            </div>
+            <div class="incident-actions">
+              <button class="btn focusable" onclick="act('${i.id}','resolve')">✅ Resolve</button>
+              <button class="btn danger focusable" onclick="act('${i.id}','escalate')">🚨 Escalate</button>
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      // ── Main refresh loop ──────────────────────────────────────────────
+      async function refresh() {
+        try {
+          const [status, events] = await Promise.all([
+            fetch('/api/status').then(r => r.json()),
+            fetch('/api/events?limit=6').then(r => r.json()),
+          ]);
+
+          monitoringState = !!status.monitoringActive;
+          const btn = document.getElementById('monBtn');
+          btn.className = monitoringState ? 'focusable active' : 'focusable';
+          document.getElementById('monLabel').textContent = monitoringState ? 'MONITORING ON' : 'MONITORING OFF';
+
+          renderMembers(status.members || []);
+          renderIncidents(status.activeIncidents || []);
+          renderEvents(events || []);
+
+          const inc = (status.activeIncidents || []).length;
+          const incEl = document.getElementById('incCount');
+          incEl.textContent = inc;
+          incEl.className = 'status-value ' + (inc === 0 ? 'green' : inc >= 2 ? 'red' : 'yellow');
+
+          document.getElementById('sysStatus').textContent = monitoringState ? 'ACTIVE' : 'STANDBY';
+          document.getElementById('sysStatus').className = 'status-value ' + (monitoringState ? 'green' : 'muted');
+
+          document.getElementById('sbIncidents').textContent = `● ${inc} active incident${inc !== 1 ? 's' : ''}`;
+          document.getElementById('sbEvents').textContent = `● ${(events || []).length} events`;
+          document.getElementById('sbUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+        } catch (e) {
+          console.error('refresh failed', e);
+        }
+      }
+
+      // ── Toast ──────────────────────────────────────────────────────────
+      let toastTimer;
+      function showToast(type, msg) {
+        const el = document.getElementById('toast');
+        el.className = `${type} show`;
+        el.textContent = msg;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { el.className = ''; }, 6000);
+      }
+
+      refresh();
+      setInterval(refresh, 5000);
+    </script>
+  </body>
+</html>

@@ -9,6 +9,7 @@
     "dev": "tsc --watch & node --watch dist/server.js",
     "seed:dynamo": "node dist/scripts/seedDynamo.js",
     "seed:postgres": "node dist/scripts/seedPostgres.js",
+    "ring:simulate": "node dist/ring/simulator.js",
     "test": "vitest run"
   },
   "keywords": [],
@@ -17,6 +18,7 @@
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1131.0",
     "@aws-sdk/client-dynamodb": "^3.1131.0",
+    "@aws-sdk/client-eventbridge": "^3.1131.0",
     "@aws-sdk/lib-dynamodb": "^3.1131.0",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "dotenv": "^17.4.2",

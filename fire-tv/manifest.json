@@ -1,0 +1,26 @@
+{
+  "name": "Guardian Command Center",
+  "short_name": "Guardian",
+  "description": "AI household safety agent — real-time incident monitoring and control for Fire TV",
+  "version": "1.0.0",
+
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#080b10",
+  "theme_color": "#080b10",
+
+  "icons": [
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+
+  "amazon": {
+    "platform": "fireos",
+    "target_sdk": "28",
+    "permissions": ["INTERNET"],
+    "features": {
+      "leanback": true,
+      "touchscreen": false
+    }
+  }
+}

@@ -234,36 +234,36 @@ npm run seed:dynamo
 
 The stack output `McpEndpoint` is the URL you need for the next step.
 
-## Registering with Alexa+
+## Alexa+ track compliance
 
-Confirmed against Amazon's current MCP Toolkit docs — Alexa+ requires
-Streamable HTTP (which this server already uses) and a remote HTTPS URL.
+The Devpost rules for the Alexa+ track require: *"a working Agent Skill
+or a self-hosted MCP server, implementing MCP spec version (minimum
+acceptable version is 2025-11-25)."* Guardian satisfies this on the
+MCP server branch — it negotiates `2025-11-25` correctly and is
+deployed at a public HTTPS endpoint. No additional registration step
+is required to meet the track requirement.
+
+To verify spec compliance against the running server:
 
 ```bash
+npx @modelcontextprotocol/inspector
+# point it at https://h14vepqrzj.execute-api.us-east-1.amazonaws.com/mcp
+# or http://localhost:3000/mcp for local dev
+```
+
+**Optional — Alexa+ MCP Toolkit (Private Preview)**: if you have
+Private Preview access, `addon-package/addon.json` is already built to
+Amazon's real add-on schema with all URLs filled in. Register and
+deploy with:
+
+```bash
+npm install -g @alexa-ai/cli
 alexa-ai configure                # LWA OAuth, one-time
-alexa-ai new mcp --name "Guardian" --locale en-US \
-  --mcp-server-url "<McpEndpoint output from sam deploy>"
+cd addon-package && alexa-ai deploy
 ```
 
-This generates `addon-package/addon.json` — a version is already in
-this repo, built to the real schema, with placeholders (`REPLACE_WITH_*`)
-for what only you can provide: hosted icons/carousel image, and your
-privacy policy / terms URLs. Fill those in, then:
-
-```bash
-alexa-ai deploy
-```
-
-This deploys to the development stage and returns an Add-on ID you can
-test immediately in the web simulator or on a real device — no
-certification/submission needed for demo purposes.
-
-**Note on auth**: Amazon's checklist requires OAuth 2.1 + PKCE for
-account-linking add-ons. Guardian doesn't do account linking (it's a
-single-household agent, not a third-party service brokering user
-accounts), so this shouldn't block development-stage testing — but
-revisit `mcp-toolkit-authentication.html` in Amazon's docs before
-submitting for certification.
+This is an enhancement on top of an already-compliant submission, not
+a requirement.
 
 ## Wiring in real Ring events
 
@@ -329,8 +329,8 @@ get them reviewed, host them, then point `addon.json`'s
 11. ✅ Demo script, timed and mapped to tested tool calls, with a backup-video plan
 12. ✅ Store listing assets (generated icon set + carousel image) and privacy policy / terms drafts scoped to what the code actually does
 13. ✅ Judge-facing submission writeup (`SUBMISSION.md`)
-14. **You**: `sam deploy --guided`, host the assets in
-    `addon-package/media/`, get the legal drafts reviewed and hosted,
-    fill in `addon.json`'s remaining URLs, `alexa-ai deploy`, rehearse
-    both demos on real hardware, record backup takes, fill in the
-    friction log and the AWS-feedback section of `SUBMISSION.md` as you go
+14. **You**: record your demo video (MCP Inspector or curl against the
+    deployed endpoint fully satisfies the track requirement — a real
+    voice interaction via the bridge tool or Alexa+ Private Preview is
+    a bonus, not a requirement), fill in the friction log and the
+    AWS-feedback section of `SUBMISSION.md` as you go

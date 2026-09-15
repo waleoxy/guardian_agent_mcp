@@ -2,6 +2,10 @@
 
 **Track**: Alexa+ (primary) · AWS Builder + Open Source (mini challenges)
 
+## Track compliance
+
+The Alexa+ track requires a working Agent Skill or self-hosted MCP server implementing spec version 2025-11-25 (minimum). Guardian satisfies this as a self-hosted MCP server: it negotiates `2025-11-25` correctly, is deployed at a public HTTPS endpoint, and implements 13 tools callable by any compliant MCP client. Verified live against the deployed stack. `addon-package/addon.json` is also built to Amazon's real MCP Toolkit add-on schema with all URLs filled in, ready for `alexa-ai deploy` if Private Preview access is available.
+
 ## The problem
 
 Smart homes can detect a lot. Almost nothing decides what to do about
@@ -66,10 +70,8 @@ it.
 - **Amazon Bedrock** (`bedrockDecisionEngine.ts`, `policyCompiler.ts`)
   — the actual reasoning: event + household context + policies in,
   a structured tiered decision out. Uses the Bedrock Converse API
-  (`ConverseCommand`) so the same code works with any Bedrock model
-  without format changes. Automatic fallback to a deterministic rule
-  engine if the call fails or times out, so a Bedrock hiccup degrades
-  gracefully instead of crashing the demo.
+  (`ConverseCommand`) consistently across both files so the same code
+  works with any Bedrock model without format changes.
 - **AWS Lambda** — both the MCP server (behind API Gateway) and the
   Ring event handler (behind EventBridge) run here.
 - **Amazon DynamoDB** — six tables (members, visitors, policies,

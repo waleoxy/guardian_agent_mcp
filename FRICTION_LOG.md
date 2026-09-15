@@ -126,3 +126,27 @@ what would have helped**.
   are supported, whether install prompts are planned, and what the
   recommended path is for a web-based dashboard that needs to run
   full-screen on a TV without sideloading.
+
+---
+
+### [AWS — Lambda / SAM] — `AWS_REGION` is a reserved environment variable
+
+- **What I tried**: Declare `AWS_REGION` in `template.yaml`'s `Globals.Function.Environment.Variables` so the Bedrock client would pick up the region without hardcoding it.
+- **What happened**: `sam deploy` failed with `Reserved environment variable: AWS_REGION`. Lambda injects `AWS_REGION` automatically at runtime, so declaring it in the template is an error. The failure message is clear, but the SAM docs don't list reserved variable names anywhere — you only discover them by hitting the error.
+- **What would have helped**: A pre-deploy validation step in `sam build` or `sam deploy` that warns about reserved variable names before CloudFormation attempts the changeset and rolls back.
+
+---
+
+### [AWS — Lambda] — `serverless-http` + `@hono/node-server` rawHeaders incompatibility
+
+- **What I tried**: Wrap the Express/Hono app with `serverless-http` for Lambda deployment, as recommended in the serverless-http docs.
+- **What happened**: `serverless-http` builds a fake Node.js `IncomingMessage` with an empty `rawHeaders` array (`[]`). `@hono/node-server` reads `rawHeaders` (not `headers`) when converting the incoming request to a Web Standard `Request` object. With `rawHeaders` empty, the MCP SDK's content-type check received no headers and returned HTTP 415 on every request — even though the `Content-Type: application/json` header was present in the original API Gateway event. The fix was a middleware shim that rebuilds `rawHeaders` from `req.headers` before the MCP handler runs. Neither `serverless-http` nor `@hono/node-server` documents this interaction.
+- **What would have helped**: `serverless-http` populating `rawHeaders` from the API Gateway event headers, or `@hono/node-server` falling back to `headers` when `rawHeaders` is empty. A note in either library's Lambda/serverless docs about this incompatibility would have saved significant debugging time.
+
+---
+
+### [AWS — Bedrock] — New-account on-demand quota is 0, not the documented default
+
+- **What I tried**: Use Amazon Nova Lite (`amazon.nova-lite-v1:0`) for on-demand inference after Anthropic models were blocked by Marketplace subscription requirements.
+- **What happened**: Every Bedrock call returned `"Too many tokens per day, please wait before trying again."` The Service Quotas console showed the AWS default quota for Nova Lite as 5,760,000,000 tokens/day — but the applied account-level quota was 0. The quota is marked non-adjustable, so there's no self-service path to increase it. The only options are waiting for AWS to auto-increase it based on account history, or filing an AWS Support case. The console displays the AWS default prominently but doesn't surface the applied override or explain why the two values differ — making it look like the quota is fine when it isn't.
+- **What would have helped**: The Service Quotas console clearly distinguishing "AWS default" from "your account's applied value" when they differ, with an explanation of why the override exists and how to request removal. For new accounts specifically, a note that on-demand Bedrock quotas start at 0 and require either a support case or a waiting period would set accurate expectations upfront.

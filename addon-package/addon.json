@@ -18,24 +18,24 @@
           "Guardian, if someone doesn't answer after two attempts, notify me"
         ],
         "privacyAndCompliance": {
-          "privacyPolicyUrl": "https://REPLACE_WITH_YOUR_DOMAIN/guardian/privacy",
-          "termsOfUseUrl": "https://REPLACE_WITH_YOUR_DOMAIN/guardian/terms"
+          "privacyPolicyUrl": "https://waleoxy.github.io/guardian_agent_mcp/guardian/privacy",
+          "termsOfUseUrl": "https://waleoxy.github.io/guardian_agent_mcp/guardian/terms"
         },
         "mediaAssets": {
           "icons": {
             "light": [
-              { "size": "72x72", "uri": "https://REPLACE_WITH_YOUR_CDN/icon-72x72.png" },
-              { "size": "64x64", "uri": "https://REPLACE_WITH_YOUR_CDN/icon-64x64.png" },
-              { "size": "88x88", "uri": "https://REPLACE_WITH_YOUR_CDN/icon-88x88.png" },
-              { "size": "126x126", "uri": "https://REPLACE_WITH_YOUR_CDN/icon-126x126.png" },
-              { "size": "180x180", "uri": "https://REPLACE_WITH_YOUR_CDN/icon-180x180.png" },
-              { "size": "241x241", "uri": "https://REPLACE_WITH_YOUR_CDN/icon-241x241.png" }
+              { "size": "72x72", "uri": "https://waleoxy.github.io/guardian_agent_mcp/media/icon-72x72.png" },
+              { "size": "64x64", "uri": "https://waleoxy.github.io/guardian_agent_mcp/media/icon-64x64.png" },
+              { "size": "88x88", "uri": "https://waleoxy.github.io/guardian_agent_mcp/media/icon-88x88.png" },
+              { "size": "126x126", "uri": "https://waleoxy.github.io/guardian_agent_mcp/media/icon-126x126.png" },
+              { "size": "180x180", "uri": "https://waleoxy.github.io/guardian_agent_mcp/media/icon-180x180.png" },
+              { "size": "241x241", "uri": "https://waleoxy.github.io/guardian_agent_mcp/media/icon-241x241.png" }
             ],
             "dark": []
           },
           "carouselImages": [
             {
-              "uri": "https://REPLACE_WITH_YOUR_CDN/carousel-1.png",
+              "uri": "https://waleoxy.github.io/guardian_agent_mcp/media/carousel-1.png",
               "altText": "Guardian dashboard showing house status and an active wellness-check incident",
               "size": "600x900"
             }
@@ -52,7 +52,7 @@
         "endpoints": {
           "default": {
             "type": "HTTPS",
-            "uri": "https://REPLACE_WITH_YOUR_API_GATEWAY_URL/mcp"
+            "uri": "https://h14vepqrzj.execute-api.us-east-1.amazonaws.com/mcp"
           }
         }
       }

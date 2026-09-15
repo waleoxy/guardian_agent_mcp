@@ -65,9 +65,11 @@ it.
 
 - **Amazon Bedrock** (`bedrockDecisionEngine.ts`, `policyCompiler.ts`)
   — the actual reasoning: event + household context + policies in,
-  a structured tiered decision out. Automatic fallback to a
-  deterministic rule engine if the call fails or times out, so a
-  Bedrock hiccup degrades gracefully instead of crashing the demo.
+  a structured tiered decision out. Uses the Bedrock Converse API
+  (`ConverseCommand`) so the same code works with any Bedrock model
+  without format changes. Automatic fallback to a deterministic rule
+  engine if the call fails or times out, so a Bedrock hiccup degrades
+  gracefully instead of crashing the demo.
 - **AWS Lambda** — both the MCP server (behind API Gateway) and the
   Ring event handler (behind EventBridge) run here.
 - **Amazon DynamoDB** — six tables (members, visitors, policies,
@@ -78,8 +80,9 @@ it.
 - **Amazon CloudWatch** — a dashboard tracking invocations, errors, and
   p50/p99 latency (against Alexa+'s 500ms round-trip requirement).
 - **IAM** — least privilege throughout: each Lambda's role is scoped
-  to its own DynamoDB tables and `bedrock:InvokeModel` scoped to
-  Anthropic model ARNs, not `bedrock:*`.
+  to its own DynamoDB tables and `bedrock:Converse` + `bedrock:InvokeModel`
+  scoped to both Anthropic and Amazon model ARNs (including cross-region
+  inference profile ARNs for newer Claude models), not `bedrock:*`.
 
 Full deploy: `sam build && sam deploy --guided` (see `template.yaml`
 and the README).
@@ -95,22 +98,22 @@ swapping any one of them is additive, not a rewrite.
 
 ## What's genuinely tested vs. what needs your AWS account
 
-Tested and verified live (see README for the actual curl transcripts):
-all 13 MCP tools, the refusal scenario, the pattern-escalation
-scenario, the dashboard/MCP state consistency, and graceful failure
-when Bedrock credentials are absent.
+Tested and verified live against the deployed stack (`https://h14vepqrzj.execute-api.us-east-1.amazonaws.com/mcp`,
+Lambda + DynamoDB + API Gateway on AWS account 312892679220, us-east-1):
+all 13 MCP tools, the refusal scenario (Scenario C, `tier: ask`), the
+pattern-escalation scenario (Scenario D, `tier: escalate`), the
+dashboard/MCP state consistency, graceful Bedrock fallback to the rule
+engine when the model is unavailable, and the full SAM deploy pipeline.
 
-Not testable without a real AWS account / Alexa+ developer account
-(sandboxed build environment has no AWS network access): the live
-Bedrock reasoning quality, the actual `sam deploy`, and the Alexa+
-voice round-trip. `template.yaml` and `addon-package/` are built to
-deploy and register correctly, but "built to spec" and "confirmed
-against Amazon's infrastructure" are different claims — the latter is
-the next step, on real hardware.
+Bedrock reasoning quality (Nova Lite) is wired and confirmed reaching
+the model but currently blocked by a new-account on-demand quota issue
+pending AWS Support resolution. The fallback to the rule engine is
+working correctly in the interim — all four scenarios produce correct
+tiered decisions regardless of which engine resolves them.
 
 ## AWS/Amazon developer experience feedback
 
-Five real friction points encountered during this build, documented in
+Eight real friction points encountered during this build, documented in
 full in `FRICTION_LOG.md`:
 
 1. **Streamable HTTP transport** — the Alexa+ MCP Toolkit requires
@@ -146,3 +149,30 @@ full in `FRICTION_LOG.md`:
    something else) isn't documented in the Fire TV developer docs.
    A PWA compatibility matrix for Silk would answer this without
    trial and error.
+
+6. **`AWS_REGION` is a reserved Lambda environment variable** — SAM
+   deploy fails silently if you declare `AWS_REGION` in `template.yaml`
+   Globals because Lambda injects it automatically. The error message
+   (`Reserved environment variable`) is clear once you see it, but
+   the SAM docs don't list reserved variable names upfront. A
+   pre-deploy validation warning would catch this before CloudFormation
+   rolls back.
+
+7. **`serverless-http` + `@hono/node-server` rawHeaders incompatibility**
+   — `serverless-http` builds a fake `IncomingMessage` with an empty
+   `rawHeaders` array. `@hono/node-server` reads `rawHeaders` when
+   converting to a Web Standard Request, causing the MCP SDK's
+   content-type check to fail with HTTP 415 on every Lambda invocation
+   even though the header was present. Required rebuilding `rawHeaders`
+   from `req.headers` in a middleware shim. Neither library documents
+   this interaction.
+
+8. **Bedrock new-account quota is 0, not the documented default** —
+   The AWS default quota for Nova Lite on-demand tokens per day is
+   5.76 billion, but newly subscribed accounts have an applied value
+   of 0 with no self-service way to increase it (marked non-adjustable
+   in Service Quotas). The only path is an AWS Support case or waiting
+   for automatic account-history-based increases. The quota console
+   shows the AWS default prominently but doesn't surface the applied
+   override or explain why it differs — making it look like the quota
+   is fine when it isn't.

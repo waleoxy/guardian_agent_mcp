@@ -1,9 +1,10 @@
 import { randomUUID } from "crypto";
 import {
   BedrockRuntimeClient,
-  InvokeModelCommand,
+  ConverseCommand,
 } from "@aws-sdk/client-bedrock-runtime";
 import { Policy } from "./types/domain";
+import { extractJson } from "./utils/extractJson";
 
 /**
  * Turns something like "If Mom doesn't respond after two attempts,
@@ -54,21 +55,14 @@ export interface CompiledPolicyError {
 export async function compilePolicy(
   naturalLanguageRule: string,
 ): Promise<CompiledPolicyResult | CompiledPolicyError> {
-  const body = JSON.stringify({
-    anthropic_version: "bedrock-2023-05-31",
-    max_tokens: 300,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: naturalLanguageRule }],
-  });
-
   let response;
   try {
     response = await client.send(
-      new InvokeModelCommand({
+      new ConverseCommand({
         modelId: MODEL_ID,
-        contentType: "application/json",
-        accept: "application/json",
-        body,
+        system: [{ text: SYSTEM_PROMPT }],
+        messages: [{ role: "user", content: [{ text: naturalLanguageRule }] }],
+        inferenceConfig: { maxTokens: 300 },
       }),
     );
   } catch (err: any) {
@@ -79,9 +73,7 @@ export async function compilePolicy(
     return { ok: false, error: `Bedrock call failed: ${msg}${hint}` };
   }
 
-  const raw = new TextDecoder().decode(response.body);
-  const parsed = JSON.parse(raw);
-  const text: string = parsed.content?.[0]?.text ?? "";
+  const text: string = response.output?.message?.content?.[0]?.text ?? "";
 
   let result: any;
   try {
@@ -114,13 +106,3 @@ export async function compilePolicy(
   return { ok: true, policy };
 }
 
-function extractJson(text: string): string {
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenced) return fenced[1].trim();
-  const braceStart = text.indexOf("{");
-  const braceEnd = text.lastIndexOf("}");
-  if (braceStart !== -1 && braceEnd !== -1) {
-    return text.slice(braceStart, braceEnd + 1);
-  }
-  return text;
-}

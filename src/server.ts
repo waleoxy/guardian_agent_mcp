@@ -21,11 +21,6 @@ if (process.env.STORE_BACKEND === "postgres") {
 if (process.env.DECISION_ENGINE === "bedrock") {
   if (!process.env.AWS_REGION)
     errors.push("AWS_REGION is required when DECISION_ENGINE=bedrock");
-  if (!process.env.BEDROCK_MODEL_ID)
-    errors.push(
-      "BEDROCK_MODEL_ID is required when DECISION_ENGINE=bedrock " +
-        "(e.g. anthropic.claude-3-5-sonnet-20241022-v2:0)",
-    );
 }
 
 if (errors.length > 0) {

@@ -5,6 +5,7 @@ import {
 import { store } from "./store";
 import { Decision, HouseholdEvent } from "./types/domain";
 import { decide as decideWithRules } from "./decisionEngine";
+import { extractJson } from "./utils/extractJson";
 
 /**
  * Bedrock-backed decision engine.
@@ -88,18 +89,6 @@ async function decideViaBedrock(event: HouseholdEvent): Promise<Decision> {
     throw new Error(`Malformed decision from Bedrock: ${text}`);
   }
   return decision;
-}
-
-/** Bedrock sometimes wraps JSON in prose or code fences despite instructions; extract defensively. */
-function extractJson(text: string): string {
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenced) return fenced[1].trim();
-  const braceStart = text.indexOf("{");
-  const braceEnd = text.lastIndexOf("}");
-  if (braceStart !== -1 && braceEnd !== -1) {
-    return text.slice(braceStart, braceEnd + 1);
-  }
-  return text;
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {

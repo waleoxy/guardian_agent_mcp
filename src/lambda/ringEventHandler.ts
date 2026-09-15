@@ -35,16 +35,6 @@ export async function handler(
   });
 
   const monitoringActive = await store.getMonitoringActive();
-  if (!monitoringActive) {
-    console.log("Monitoring is off — recording event, skipping reasoning.");
-    await store.addEvent({
-      source: "ring",
-      type: eventType,
-      location,
-      timestamp,
-    });
-    return;
-  }
 
   const householdEvent = await store.addEvent({
     source: "ring",
@@ -52,6 +42,11 @@ export async function handler(
     location,
     timestamp,
   });
+
+  if (!monitoringActive) {
+    console.log("Monitoring is off — recording event, skipping reasoning.");
+    return;
+  }
 
   const decision = await decide(householdEvent);
 

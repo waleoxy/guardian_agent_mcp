@@ -101,7 +101,7 @@ app.post("/api/incidents/:id/resolve", async (req, res) => {
   const incident = await store.updateIncident(req.params.id, {
     status: "resolved",
   });
-  if (!incident) return res.status(404).json({ error: "not found" });
+  if (!incident) return void res.status(404).json({ error: "not found" });
   res.json(incident);
 });
 
@@ -109,7 +109,7 @@ app.post("/api/incidents/:id/escalate", async (req, res) => {
   const incident = await store.updateIncident(req.params.id, {
     status: "escalated",
   });
-  if (!incident) return res.status(404).json({ error: "not found" });
+  if (!incident) return void res.status(404).json({ error: "not found" });
   res.json(incident);
 });
 

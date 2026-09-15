@@ -15,6 +15,9 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1131.0",
     "@aws-sdk/client-dynamodb": "^3.1131.0",
@@ -34,9 +37,14 @@
     "@types/express": "^5.0.6",
     "@types/node": "^22.20.2",
     "@types/pg": "^8.23.1",
+    "esbuild": "^0.28.2",
     "prisma": "^7.10.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^7.0.2",
     "vitest": "^2.1.9"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "esbuild@0.21.5": true
   }
 }

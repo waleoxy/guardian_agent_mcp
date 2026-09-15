@@ -53,6 +53,42 @@ export const seedPolicies: Policy[] = [
     tier: "inform",
   },
   {
+    id: "p-package-detected",
+    description: "A package was delivered — notify the owner, no action needed.",
+    appliesTo: { eventType: "package_detected" },
+    tier: "inform",
+  },
+  {
+    id: "p-vehicle-detected",
+    description: "A vehicle was detected in the driveway — notify the owner.",
+    appliesTo: { eventType: "vehicle_detected" },
+    tier: "inform",
+  },
+  {
+    id: "p-fall-detected",
+    description: "A fall was detected — escalate immediately and notify emergency contact if no response.",
+    appliesTo: { eventType: "fall_detected" },
+    tier: "escalate",
+  },
+  {
+    id: "p-medication-missed",
+    description: "Medication time passed with no activity — ask the owner to check in.",
+    appliesTo: { eventType: "medication_missed" },
+    tier: "ask",
+  },
+  {
+    id: "p-routine-deviation",
+    description: "Expected routine activity hasn't occurred — ask the owner whether to check in.",
+    appliesTo: { eventType: "routine_deviation" },
+    tier: "ask",
+  },
+  {
+    id: "p-package-theft",
+    description: "A package was removed by an unknown person — escalate and notify owner immediately.",
+    appliesTo: { eventType: "package_theft" },
+    tier: "escalate",
+  },
+  {
     id: "p-wellness-check",
     description: "If Mom doesn't answer after two attempts, notify the owner.",
     appliesTo: { eventType: "no_response" },
@@ -65,6 +101,18 @@ export const seedPolicies: Policy[] = [
     tier: "ask",
     notes:
       "Hard constraint: unlocking always requires explicit user confirmation regardless of confidence.",
+  },
+  {
+    id: "p-motion",
+    description: "Motion detected — notify the owner if away, log otherwise.",
+    appliesTo: { eventType: "motion" },
+    tier: "inform",
+  },
+  {
+    id: "p-window-activity",
+    description: "Window activity detected — notify the owner to review.",
+    appliesTo: { eventType: "window_activity" },
+    tier: "inform",
   },
   {
     id: "p-quiet-hours",

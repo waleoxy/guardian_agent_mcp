@@ -24,6 +24,15 @@ function buildMcpServer(): McpServer {
 }
 
 export const app = express();
+// Normalise Content-Type before the MCP SDK sees it — some clients
+// (PowerShell, API Gateway) append "; charset=utf-8" which causes the
+// SDK's strict equality check to reject the request.
+app.use((req, _res, next) => {
+  if (req.headers["content-type"]?.startsWith("application/json")) {
+    req.headers["content-type"] = "application/json";
+  }
+  next();
+});
 app.use(express.json());
 
 // Stateless mode: a fresh McpServer + transport per request. Simple,
@@ -31,6 +40,15 @@ app.use(express.json());
 // multi-turn session state on the MCP layer itself later, switch to
 // sessionIdGenerator + a session map (see MCP SDK docs).
 app.post("/mcp", async (req, res) => {
+  // serverless-http builds a fake IncomingMessage from the Lambda event
+  // and only populates req.headers — rawHeaders stays []. @hono/node-server
+  // reads rawHeaders when converting to a Web Standard Request, so it sees
+  // no headers at all and the SDK's content-type check fails with 415.
+  if (req.rawHeaders.length === 0 && req.headers) {
+    req.rawHeaders = Object.entries(req.headers).flatMap(([k, v]) =>
+      Array.isArray(v) ? v.flatMap((val) => [k, val]) : [k, String(v ?? "")]
+    );
+  }
   try {
     const server = buildMcpServer();
     const transport = new StreamableHTTPServerTransport({
@@ -70,6 +88,10 @@ app.get("/api/status", async (_req, res) => {
   res.json({ monitoringActive, members, activeIncidents });
 });
 
+app.get("/api/policies", async (_req, res) => {
+  res.json(await store.listPolicies());
+});
+
 app.get("/api/events", async (req, res) => {
   const limit = req.query.limit ? Number(req.query.limit) : 10;
   res.json(await store.recentEvents(limit));
@@ -94,6 +116,22 @@ app.post("/api/incidents/:id/escalate", async (req, res) => {
 app.use(express.static(path.join(__dirname, "..", "public")));
 app.use("/fire-tv", express.static(path.join(__dirname, "..", "fire-tv")));
 
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok", service: "guardian-mcp" });
+app.get("/health", async (_req, res) => {
+  try {
+    // Probe the store — if tables are missing or Postgres is down this throws.
+    await store.getMonitoringActive();
+    res.json({
+      status: "ok",
+      service: "guardian-mcp",
+      store: process.env.STORE_BACKEND ?? "memory",
+      engine: process.env.DECISION_ENGINE ?? "rules",
+    });
+  } catch (err: any) {
+    res.status(503).json({
+      status: "error",
+      service: "guardian-mcp",
+      store: process.env.STORE_BACKEND ?? "memory",
+      error: err?.message ?? String(err),
+    });
+  }
 });

@@ -8,7 +8,7 @@ Description: >
 Parameters:
   DecisionEngine:
     Type: String
-    Default: bedrock
+    Default: rules
     AllowedValues: [rules, bedrock]
     Description: >
       Start with "rules" to deploy with zero Bedrock dependency and
@@ -20,7 +20,7 @@ Parameters:
 
 Globals:
   Function:
-    Runtime: nodejs20.x
+    Runtime: nodejs22.x
     Timeout: 10
     MemorySize: 256
     Environment:
@@ -40,9 +40,16 @@ Resources:
   # --- MCP server: Alexa+'s public HTTPS entry point ---------------------
   McpFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: false
+        Target: es2020
+        EntryPoints:
+          - src/lambda/mcpHandler.ts
     Properties:
       FunctionName: guardian-mcp-server
-      Handler: dist/lambda/mcpHandler.handler
+      Handler: mcpHandler.handler
       CodeUri: .
       Events:
         McpApi:
@@ -67,18 +74,27 @@ Resources:
             - Effect: Allow
               Action:
                 - bedrock:InvokeModel
-              # Scoped to the model families Guardian actually calls,
-              # not "bedrock:*" — least privilege even in a hackathon.
+                - bedrock:Converse
               Resource:
-                - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.*"
-
-  # --- Ring ingestion: async path, triggered by EventBridge --------------
+                - !Sub "arn:aws:bedrock:*::foundation-model/anthropic.*"
+                - !Sub "arn:aws:bedrock:*::foundation-model/amazon.*"
+                - !Sub "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.anthropic.*"
   RingEventFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: false
+        Target: es2020
+        EntryPoints:
+          - src/lambda/ringEventHandler.ts
     Properties:
       FunctionName: guardian-ring-event-handler
-      Handler: dist/lambda/ringEventHandler.handler
+      Handler: ringEventHandler.handler
       CodeUri: .
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt RingEventDLQ.Arn
       Events:
         RingEvent:
           Type: EventBridgeRule
@@ -99,12 +115,23 @@ Resources:
             TableName: !Ref IncidentsTable
         - DynamoDBCrudPolicy:
             TableName: !Ref ConfigTable
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt RingEventDLQ.QueueName
         - Statement:
             - Effect: Allow
               Action:
                 - bedrock:InvokeModel
+                - bedrock:Converse
               Resource:
-                - !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.*"
+                - !Sub "arn:aws:bedrock:*::foundation-model/anthropic.*"
+                - !Sub "arn:aws:bedrock:*::foundation-model/amazon.*"
+                - !Sub "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/us.anthropic.*"
+
+  RingEventDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: guardian-ring-event-dlq
+      MessageRetentionPeriod: 1209600  # 14 days
 
   # --- Tables --------------------------------------------------------------
   MembersTable:
@@ -189,3 +216,6 @@ Outputs:
   DashboardUrl:
     Description: CloudWatch dashboard URL
     Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=guardian-agent"
+  RingEventDLQUrl:
+    Description: SQS DLQ for failed Ring event processing — monitor this for dropped events
+    Value: !Ref RingEventDLQ

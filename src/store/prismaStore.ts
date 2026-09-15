@@ -53,6 +53,23 @@ export class PrismaStore implements IGuardianStore {
     return row ? rowToMember(row) : undefined;
   }
 
+  async updateMember(id: string, patch: Partial<HouseholdMember>): Promise<HouseholdMember | undefined> {
+    const existing = await client().member.findUnique({ where: { id } });
+    if (!existing) return undefined;
+    const row = await client().member.update({
+      where: { id },
+      data: {
+        name: patch.name ?? undefined,
+        role: patch.role ?? undefined,
+        routine: patch.routine ?? undefined,
+        vulnerable: patch.vulnerable ?? undefined,
+        status: patch.status ?? undefined,
+        lastSeenAt: patch.lastSeenAt ? new Date(patch.lastSeenAt) : undefined,
+      },
+    });
+    return rowToMember(row);
+  }
+
   async listVisitors(): Promise<ExpectedVisitor[]> {
     return client().visitor.findMany();
   }

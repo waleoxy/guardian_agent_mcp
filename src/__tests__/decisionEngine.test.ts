@@ -132,6 +132,58 @@ describe("Fallback — hard constraint as a last resort, not the default", () =>
   });
 });
 
+describe("Wellness events", () => {
+  it("escalates immediately on fall_detected", async () => {
+    const { decide } = await freshEngine();
+    const decision = await decide({
+      id: "w1",
+      source: "system",
+      type: "fall_detected",
+      location: "living_room",
+      timestamp: SATURDAY_EVENING.toISOString(),
+    });
+    expect(decision.tier).toBe("escalate");
+    expect(decision.action).toBe("escalate_wellness_emergency");
+  });
+
+  it("asks on medication_missed", async () => {
+    const { decide } = await freshEngine();
+    const decision = await decide({
+      id: "w2",
+      source: "system",
+      type: "medication_missed",
+      location: "kitchen",
+      timestamp: SATURDAY_EVENING.toISOString(),
+    });
+    expect(decision.tier).toBe("ask");
+    expect(decision.action).toBe("ask_whether_assistance_needed");
+  });
+
+  it("escalates on package_theft", async () => {
+    const { decide } = await freshEngine();
+    const decision = await decide({
+      id: "w3",
+      source: "ring",
+      type: "package_theft",
+      location: "front_door",
+      timestamp: SATURDAY_EVENING.toISOString(),
+    });
+    expect(decision.tier).toBe("escalate");
+  });
+
+  it("asks on routine_deviation", async () => {
+    const { decide } = await freshEngine();
+    const decision = await decide({
+      id: "w4",
+      source: "system",
+      type: "routine_deviation",
+      location: "n/a",
+      timestamp: SATURDAY_EVENING.toISOString(),
+    });
+    expect(decision.tier).toBe("ask");
+  });
+});
+
 describe("Scenario D — pattern escalation", () => {
   it("escalates on a cluster of unrelated unusual events even though none alone would", async () => {
     const { decide, store } = await freshEngine();
@@ -174,5 +226,25 @@ describe("Scenario D — pattern escalation", () => {
     const d2 = await decide(e2);
     expect(d2.tier).not.toBe("escalate");
     void e1;
+  });
+});
+
+describe("Scenario doorbell — repeated rings", () => {
+  it("escalates on three doorbell rings in quick succession", async () => {
+    const { decide, store } = await freshEngine();
+    const base = new Date(2026, 8, 12, 22, 0).getTime();
+    const mk = (offsetMin: number) => ({
+      source: "ring" as const,
+      type: "doorbell",
+      location: "front_door",
+      timestamp: new Date(base + offsetMin * 60_000).toISOString(),
+    });
+    const e1 = await store.addEvent(mk(0));
+    const e2 = await store.addEvent(mk(2));
+    const e3 = await store.addEvent(mk(4));
+    const d3 = await decide(e3);
+    expect(d3.tier).toBe("escalate");
+    expect(d3.reasoning).toMatch(/pattern|3 unusual events/i);
+    void e1; void e2;
   });
 });

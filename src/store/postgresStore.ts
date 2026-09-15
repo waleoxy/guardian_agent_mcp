@@ -54,6 +54,19 @@ export class PostgresStore implements IGuardianStore {
     return rows[0] ? rowToMember(rows[0]) : undefined;
   }
 
+  async updateMember(id: string, patch: Partial<HouseholdMember>): Promise<HouseholdMember | undefined> {
+    const existing = await this.getMember(id);
+    if (!existing) return undefined;
+    const merged = { ...existing, ...patch };
+    const { rows } = await pool().query(
+      `UPDATE members SET name=$2, role=$3, routine=$4, vulnerable=$5, status=$6, last_seen_at=$7
+       WHERE id=$1
+       RETURNING id, name, role, routine, vulnerable, status, last_seen_at AS "lastSeenAt"`,
+      [id, merged.name, merged.role, merged.routine ?? null, merged.vulnerable, merged.status ?? null, merged.lastSeenAt ?? null],
+    );
+    return rows[0] ? rowToMember(rows[0]) : undefined;
+  }
+
   async listVisitors(): Promise<ExpectedVisitor[]> {
     const { rows } = await pool().query(
       `SELECT id, label, day_of_week AS "dayOfWeek",

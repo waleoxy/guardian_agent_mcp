@@ -61,20 +61,34 @@ export async function compilePolicy(
     messages: [{ role: "user", content: naturalLanguageRule }],
   });
 
-  const response = await client.send(
-    new InvokeModelCommand({
-      modelId: MODEL_ID,
-      contentType: "application/json",
-      accept: "application/json",
-      body,
-    }),
-  );
+  let response;
+  try {
+    response = await client.send(
+      new InvokeModelCommand({
+        modelId: MODEL_ID,
+        contentType: "application/json",
+        accept: "application/json",
+        body,
+      }),
+    );
+  } catch (err: any) {
+    const msg = err?.message ?? String(err);
+    const hint = msg.includes("AccessDenied")
+      ? " — check that the model is enabled in your account/region and that bedrock:InvokeModel is in your IAM policy"
+      : "";
+    return { ok: false, error: `Bedrock call failed: ${msg}${hint}` };
+  }
 
   const raw = new TextDecoder().decode(response.body);
   const parsed = JSON.parse(raw);
   const text: string = parsed.content?.[0]?.text ?? "";
-  const jsonText = extractJson(text);
-  const result = JSON.parse(jsonText);
+
+  let result: any;
+  try {
+    result = JSON.parse(extractJson(text));
+  } catch {
+    return { ok: false, error: `Model returned non-JSON: ${text.slice(0, 200)}` };
+  }
 
   if (result.error) {
     return { ok: false, error: result.error };

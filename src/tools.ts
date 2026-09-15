@@ -241,6 +241,24 @@ export function registerGuardianTools(server: McpServer) {
   );
 
   server.registerTool(
+    "set_member_status",
+    {
+      title: "Set member status",
+      description:
+        "Updates a household member's presence status (home/away/unknown). This is what persists 'John left for work' or 'James is home early' across the whole system — the decision engine reads this status when evaluating every subsequent event.",
+      inputSchema: {
+        memberId: z.string(),
+        status: z.enum(["home", "away", "unknown"]),
+      },
+    },
+    async ({ memberId, status }) => {
+      const member = await store.updateMember(memberId, { status });
+      if (!member) return notFound("member", memberId);
+      return text({ updated: true, member });
+    },
+  );
+
+  server.registerTool(
     "set_monitoring",
     {
       title: "Set monitoring",
@@ -263,7 +281,15 @@ export function registerGuardianTools(server: McpServer) {
       inputSchema: { rule: z.string() },
     },
     async ({ rule }) => {
-      const result = await compilePolicy(rule);
+      let result;
+      try {
+        result = await compilePolicy(rule);
+      } catch (err: any) {
+        return {
+          isError: true,
+          content: [{ type: "text" as const, text: `Policy compiler threw unexpectedly: ${err?.message ?? err}` }],
+        };
+      }
       if (!result.ok) {
         return {
           isError: true,

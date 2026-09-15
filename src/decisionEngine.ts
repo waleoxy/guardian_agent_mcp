@@ -14,6 +14,9 @@ export async function decide(event: HouseholdEvent): Promise<Decision> {
   const expectedVisitorDecision = await checkExpectedVisitor(event);
   if (expectedVisitorDecision) return expectedVisitorDecision;
 
+  const wellnessDecision = await checkWellnessEvent(event);
+  if (wellnessDecision) return wellnessDecision;
+
   const vulnerableMemberDecision = await checkVulnerableMemberHome(event);
   if (vulnerableMemberDecision) return vulnerableMemberDecision;
 
@@ -78,8 +81,10 @@ const PATTERN_THRESHOLD = 3; // distinct concerning events in the window
 const CONCERNING_TYPES = new Set([
   "person_detected",
   "door_activity",
+  "doorbell",
   "window_activity",
   "motion",
+  "vehicle_detected",
 ]);
 
 async function checkPattern(latest: HouseholdEvent): Promise<Decision | null> {
@@ -121,7 +126,7 @@ async function checkPattern(latest: HouseholdEvent): Promise<Decision | null> {
  * — a real implementation might also check the visitor is expected at
  * a specific entrance, but the domain model doesn't carry that today.
  */
-const VISITOR_RELEVANT_TYPES = new Set(["person_detected", "door_activity"]);
+const VISITOR_RELEVANT_TYPES = new Set(["person_detected", "door_activity", "doorbell"]);
 
 async function checkExpectedVisitor(
   event: HouseholdEvent,
@@ -160,7 +165,44 @@ function matches(policy: Policy, event: HouseholdEvent): boolean {
 }
 
 /**
- * Scenario C from the design doc: "elderly parent home" -> ask
+ * Wellness / safety events: fall_detected, medication_missed,
+ * routine_deviation, package_theft, no_response. These are system-
+ * generated signals that always warrant a real response — never the
+ * catch-all. Tier is determined by urgency: fall/package_theft escalate
+ * immediately; missed medication and routine deviation ask; no_response
+ * defers to the p-wellness-check policy below.
+ */
+const WELLNESS_ESCALATE = new Set(["fall_detected", "package_theft"]);
+const WELLNESS_ASK = new Set(["medication_missed", "routine_deviation"]);
+
+async function checkWellnessEvent(
+  event: HouseholdEvent,
+): Promise<Decision | null> {
+  if (!WELLNESS_ESCALATE.has(event.type) && !WELLNESS_ASK.has(event.type))
+    return null;
+
+  const members = await store.listMembers();
+  const subject = members.find((m) => m.vulnerable && m.status === "home");
+  const subjectName = subject?.name ?? "a household member";
+
+  if (WELLNESS_ESCALATE.has(event.type)) {
+    return {
+      tier: "escalate",
+      action: "escalate_wellness_emergency",
+      reasoning: `${event.type.replace(/_/g, " ")} detected at ${event.location}${subject ? ` — ${subjectName} is home` : ""}. This needs immediate attention. Notifying you now and flagging for emergency contact if there's no response.`,
+      confidence: 90,
+    };
+  }
+
+  return {
+    tier: "ask",
+    action: "ask_whether_assistance_needed",
+    reasoning: `${event.type.replace(/_/g, " ")} at ${event.location}${subject ? ` — ${subjectName} is home` : ""}. Want me to check in with ${subjectName}, or are you already aware?`,
+    confidence: 80,
+  };
+}
+
+/**: "elderly parent home" -> ask
  * whether assistance is needed, rather than a generic notify. Checked
  * before the away-owner case (B): in this seeded household Mary is
  * both vulnerable and marked "home", so with the seed data as-is, C
@@ -171,7 +213,7 @@ function matches(policy: Policy, event: HouseholdEvent): boolean {
  * testable so B's own logic is still verified even though this
  * household's fixed seed data means C usually wins the race with it.
  */
-const VULNERABLE_CHECK_TYPES = new Set(["person_detected", "door_activity"]);
+const VULNERABLE_CHECK_TYPES = new Set(["person_detected", "door_activity", "doorbell"]);
 
 export async function checkVulnerableMemberHome(
   event: HouseholdEvent,
@@ -201,7 +243,7 @@ export async function checkVulnerableMemberHome(
  * Bedrock engine's own system-prompt instruction to use "escalate"
  * sparingly rather than as the default for an ordinary unknown visitor.
  */
-const AWAY_CHECK_TYPES = new Set(["person_detected", "door_activity"]);
+const AWAY_CHECK_TYPES = new Set(["person_detected", "door_activity", "doorbell"]);
 
 export async function checkOwnerAway(
   event: HouseholdEvent,

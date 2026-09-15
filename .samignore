@@ -1,0 +1,27 @@
+# SAM excludes these when packaging the Lambda zip.
+# node_modules is reinstalled fresh by sam build (production deps only).
+# Source TypeScript, tests, and dev tooling are not needed at runtime.
+node_modules/
+src/
+*.ts
+*.test.*
+.env
+.env.*
+.git/
+.github/
+brand-assets/
+postgres/
+prisma/
+fire-tv/
+public/
+infra/
+coverage/
+*.log
+samconfig.toml
+docker-compose.yml
+README*.md
+DEMO_SCRIPT.md
+SUBMISSION.md
+CONTRIBUTING.md
+FRICTION_LOG.md
+LICENSE

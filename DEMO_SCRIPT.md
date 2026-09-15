@@ -24,15 +24,17 @@ misbehaves on demo day.
 ## Demo B — AI refuses an unsafe action (the differentiator)
 
 This is the moment that separates Guardian from an event→alert pipe.
-Confirmed live: a `person_detected` event at `front_door` returns
-`tier: "escalate"` with reasoning citing the never-auto-unlock hard
-constraint, at 95% confidence, without ever proposing the unlock.
+With the seeded household (Mary home and marked vulnerable), a
+`person_detected` event at `front_door` resolves via Scenario C:
+`tier: "ask"`, confidence 75%, with Mary named in the reasoning and
+the never-auto-unlock refusal present regardless of tier or engine.
 
 | Time | Beat | Tool call |
 |---|---|---|
-| 0:00 | Unknown visitor, owner away | `report_event { source: ring, type: person_detected, location: front_door }` |
-| 0:10 | Guardian's response (read directly from the decision) | *"An unfamiliar person is at the front door. I won't unlock the door — no policy authorizes that. I'll notify you and continue monitoring."* |
-| 0:25 | Judge question: "What if it's clearly the owner's kid locked out?" | Show `add_policy` live: *"Guardian, if it's James at the front door after school, let him in."* → compiles to a new scoped policy, still can't override the hard constraint on unlocking — good follow-up if asked, since it shows the boundary is real, not just a canned line |
+| 0:00 | Unknown visitor, Mary home | `report_event { source: ring, type: person_detected, location: front_door }` |
+| 0:10 | Guardian's response (read directly from the decision) | *"person_detected at front_door while Mary is home. Want me to check whether Mary needs anything, or just keep monitoring? Either way, I won't unlock the door without your confirmation."* — `tier: ask`, confidence 75% |
+| 0:25 | Point out what's constant | The refusal language — "I won't unlock the door without your confirmation" — appears at `inform`, `ask`, and `escalate` alike, and holds whether the rule engine or Bedrock resolves the event. It's not a canned line for one scenario; it's a hard constraint that no tier or confidence level can override. |
+| 0:40 | Judge question: "What if it's clearly the owner's kid locked out?" | Show `add_policy` live: *"Guardian, if it's James at the front door after school, let him in."* → compiles to a new scoped policy, still can't override the hard constraint on unlocking — shows the boundary is real, not just a demo artifact |
 
 ## Optional: Scenario D (pattern escalation) as a bonus beat
 

@@ -19,7 +19,7 @@ export interface ScenarioEvent {
   deviceId: string;
   eventType: string;
   location: string;
-  delayMs: number;          // wait this long before firing
+  delayMs: number; // wait this long before firing
   timestampOverride?: string; // ISO string — forces a specific time of day
 }
 
@@ -35,6 +35,13 @@ function todayAt(hour: number, minute = 0): string {
   const d = new Date();
   d.setHours(hour, minute, 0, 0);
   return d.toISOString();
+}
+
+// Helper: now minus an offset in minutes — used to give multi-event
+// scenarios explicit timestamp spacing so pattern detection sees the
+// intended gap regardless of how fast the simulator fires the events.
+function minutesAgo(n: number): string {
+  return new Date(Date.now() - n * 60_000).toISOString();
 }
 
 // Helper: next Monday at a specific hour:minute
@@ -107,18 +114,21 @@ export const SCENARIOS: Scenario[] = [
         eventType: "motion",
         location: "back_yard",
         delayMs: 0,
+        timestampOverride: minutesAgo(8),
       },
       {
         deviceId: "ring-back-door",
         eventType: "door_activity",
         location: "back_door",
-        delayMs: 3000, // 3 seconds in sim = represents 4 min gap
+        delayMs: 3000,
+        timestampOverride: minutesAgo(4),
       },
       {
         deviceId: "ring-garage",
         eventType: "window_activity",
         location: "garage",
-        delayMs: 3000, // another 3 seconds = represents 4 min gap
+        delayMs: 3000,
+        timestampOverride: minutesAgo(0),
       },
     ],
   },
@@ -134,26 +144,28 @@ export const SCENARIOS: Scenario[] = [
         eventType: "doorbell",
         location: "front_door",
         delayMs: 0,
+        timestampOverride: minutesAgo(4),
       },
       {
         deviceId: "ring-front-door",
         eventType: "doorbell",
         location: "front_door",
         delayMs: 2000,
+        timestampOverride: minutesAgo(2),
       },
       {
         deviceId: "ring-front-door",
         eventType: "doorbell",
         location: "front_door",
         delayMs: 2000,
+        timestampOverride: minutesAgo(0),
       },
     ],
   },
   {
     id: "scenario-package",
     label: "Package Detected at Front Door",
-    description:
-      "Delivery detected at the front door. Low-risk inform event.",
+    description: "Delivery detected at the front door. Low-risk inform event.",
     events: [
       {
         deviceId: "ring-front-door",

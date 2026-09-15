@@ -15,6 +15,7 @@ export type NewIncidentInput = Omit<Incident, "id" | "createdAt" | "updatedAt">;
 export interface IGuardianStore {
   listMembers(): Promise<HouseholdMember[]>;
   getMember(id: string): Promise<HouseholdMember | undefined>;
+  updateMember(id: string, patch: Partial<HouseholdMember>): Promise<HouseholdMember | undefined>;
 
   listVisitors(): Promise<ExpectedVisitor[]>;
 

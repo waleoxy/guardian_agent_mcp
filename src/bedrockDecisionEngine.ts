@@ -1,6 +1,6 @@
 import {
   BedrockRuntimeClient,
-  InvokeModelCommand,
+  ConverseCommand,
 } from "@aws-sdk/client-bedrock-runtime";
 import { store } from "./store";
 import { Decision, HouseholdEvent } from "./types/domain";
@@ -69,25 +69,17 @@ async function decideViaBedrock(event: HouseholdEvent): Promise<Decision> {
     recentEvents: await store.recentEvents(15),
   };
 
-  const body = JSON.stringify({
-    anthropic_version: "bedrock-2023-05-31",
-    max_tokens: 500,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: JSON.stringify(payload) }],
-  });
-
   const response = await client.send(
-    new InvokeModelCommand({
+    new ConverseCommand({
       modelId: MODEL_ID,
-      contentType: "application/json",
-      accept: "application/json",
-      body,
+      system: [{ text: SYSTEM_PROMPT }],
+      messages: [{ role: "user", content: [{ text: JSON.stringify(payload) }] }],
+      inferenceConfig: { maxTokens: 500 },
     }),
   );
 
-  const raw = new TextDecoder().decode(response.body);
-  const parsed = JSON.parse(raw);
-  const text: string = parsed.content?.[0]?.text ?? "";
+  const text: string =
+    response.output?.message?.content?.[0]?.text ?? "";
 
   const jsonText = extractJson(text);
   const decision = JSON.parse(jsonText) as Decision;

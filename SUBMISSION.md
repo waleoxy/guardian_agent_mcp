@@ -110,7 +110,39 @@ the next step, on real hardware.
 
 ## AWS/Amazon developer experience feedback
 
-[Fill this in from your actual `sam deploy`, Bedrock, and `alexa-ai`
-CLI runs — see `FRICTION_LOG.md`, which is meant to feed directly into
-this section. One entry is pre-seeded there from documentation
-research; the rest needs real usage to be honest.]
+Five real friction points encountered during this build, documented in
+full in `FRICTION_LOG.md`:
+
+1. **Streamable HTTP transport** — the Alexa+ MCP Toolkit requires
+   Streamable HTTP (not SSE), but the SDK docs for it lag behind the
+   implementation. The correct constructor signature and session
+   lifecycle had to be inferred from SDK source, not docs. A minimal
+   working server example in the Toolkit pages would eliminate this.
+
+2. **`addon.json` schema** — no published JSON Schema or complete
+   reference example exists. Fields like `mediaAssets` icon sizes,
+   carousel dimensions, and the `spokenForm` IPA field required
+   reading three separate doc pages to assemble one file. A
+   machine-readable schema would let IDEs catch errors before
+   `alexa-ai deploy`.
+
+3. **Bedrock model availability** — `AccessDeniedException` from
+   `InvokeModel` is indistinguishable between "model not enabled for
+   your account" and "IAM policy missing." A distinct exception type
+   or a `ListFoundationModels` response that surfaces per-account
+   enablement status would make the fix obvious without a console
+   detour.
+
+4. **SAM local + EventBridge** — `sam local invoke` doesn't emulate
+   EventBridge rule routing; you have to hand-construct the full
+   envelope (including `detail` as a JSON-encoded string, not an
+   object). The envelope schema lives in the EventBridge guide, not
+   the SAM local docs. A `--event-bridge-detail` flag that handles
+   wrapping automatically would close this gap.
+
+5. **Fire TV PWA install** — Silk browser parses the PWA manifest but
+   doesn't surface an install prompt. The recommended path for a
+   web-based TV dashboard (bookmark shortcut vs. APK wrapper vs.
+   something else) isn't documented in the Fire TV developer docs.
+   A PWA compatibility matrix for Silk would answer this without
+   trial and error.

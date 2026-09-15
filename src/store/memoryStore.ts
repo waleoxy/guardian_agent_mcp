@@ -41,6 +41,14 @@ export class MemoryStore implements IGuardianStore {
     return this.members.get(id);
   }
 
+  async updateMember(id: string, patch: Partial<HouseholdMember>): Promise<HouseholdMember | undefined> {
+    const existing = this.members.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...patch };
+    this.members.set(id, updated);
+    return updated;
+  }
+
   async listVisitors(): Promise<ExpectedVisitor[]> {
     return [...this.visitors.values()];
   }

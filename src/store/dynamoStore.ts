@@ -65,6 +65,16 @@ export class DynamoStore implements IGuardianStore {
     return res.Item as HouseholdMember | undefined;
   }
 
+  async updateMember(id: string, patch: Partial<HouseholdMember>): Promise<HouseholdMember | undefined> {
+    const existing = await this.getMember(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...patch };
+    await this.client.send(
+      new PutCommand({ TableName: TABLES.members, Item: updated }),
+    );
+    return updated;
+  }
+
   async listVisitors(): Promise<ExpectedVisitor[]> {
     const res = await this.client.send(
       new ScanCommand({ TableName: TABLES.visitors }),

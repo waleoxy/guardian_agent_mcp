@@ -6,7 +6,13 @@
     <meta name="viewport" content="width=1920" />
     <style>
       /* ── Reset ── */
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
       :root {
         --bg: #080b10;
@@ -21,24 +27,29 @@
         --blue: #4f8ef5;
         --purple: #a78bfa;
         --focus: #4f8ef5;
-        --focus-glow: rgba(79,142,245,0.35);
-        --green-dim: rgba(46,204,138,0.12);
-        --yellow-dim: rgba(245,200,66,0.12);
-        --red-dim: rgba(240,79,79,0.12);
-        --blue-dim: rgba(79,142,245,0.12);
+        --focus-glow: rgba(79, 142, 245, 0.35);
+        --green-dim: rgba(46, 204, 138, 0.12);
+        --yellow-dim: rgba(245, 200, 66, 0.12);
+        --red-dim: rgba(240, 79, 79, 0.12);
+        --blue-dim: rgba(79, 142, 245, 0.12);
       }
 
-      html, body {
-        width: 1920px; height: 1080px;
+      html,
+      body {
+        width: 100vw;
+        height: 100%;
         overflow: hidden;
         background: var(--bg);
         color: var(--text);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         font-size: 18px;
       }
 
       /* ── Focus ring — the only interactive feedback on TV ── */
-      :focus { outline: none; }
+      :focus {
+        outline: none;
+      }
       .focusable:focus {
         outline: 3px solid var(--focus);
         outline-offset: 3px;
@@ -49,7 +60,8 @@
       #app {
         display: grid;
         grid-template-rows: 72px 1fr 48px;
-        height: 1080px;
+        height: 100vh;
+        max-height: 1080px;
       }
 
       /* ── Top bar ── */
@@ -63,87 +75,188 @@
         flex-shrink: 0;
       }
       .brand {
-        display: flex; align-items: center; gap: 14px;
-        font-size: 26px; font-weight: 800; letter-spacing: 0.12em;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
       }
-      .brand-sub { font-size: 13px; color: var(--muted); font-weight: 400; }
-      .topbar-right { display: flex; align-items: center; gap: 24px; }
-      #clock { font-size: 22px; color: var(--muted); font-variant-numeric: tabular-nums; }
+      .brand-sub {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 400;
+      }
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+      #clock {
+        font-size: 22px;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
 
       #monBtn {
-        display: flex; align-items: center; gap: 10px;
-        padding: 10px 24px; border-radius: 999px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 24px;
+        border-radius: 999px;
         border: 2px solid var(--border);
-        background: transparent; color: var(--muted);
-        font-size: 15px; font-weight: 700; letter-spacing: 0.08em;
-        cursor: pointer; transition: all 0.2s;
+        background: transparent;
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        transition: all 0.2s;
       }
       #monBtn .led {
-        width: 10px; height: 10px; border-radius: 50%;
-        background: var(--muted); transition: all 0.3s;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--muted);
+        transition: all 0.3s;
       }
-      #monBtn.active { border-color: var(--green); color: var(--green); }
-      #monBtn.active .led { background: var(--green); box-shadow: 0 0 8px var(--green); }
+      #monBtn.active {
+        border-color: var(--green);
+        color: var(--green);
+      }
+      #monBtn.active .led {
+        background: var(--green);
+        box-shadow: 0 0 8px var(--green);
+      }
 
       /* ── 3-column main ── */
       #main {
         display: grid;
-        grid-template-columns: 420px 1fr 460px;
+        grid-template-columns: 380px 1fr 420px;
         overflow: hidden;
+        min-height: 0;
       }
       .col {
-        display: flex; flex-direction: column;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
         overflow: hidden;
         border-right: 1px solid var(--border);
       }
-      .col:last-child { border-right: none; }
+      .col:last-child {
+        border-right: none;
+      }
       .col-header {
         padding: 16px 24px 14px;
         border-bottom: 1px solid var(--border);
-        font-size: 11px; text-transform: uppercase;
-        letter-spacing: 0.14em; color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--muted);
         flex-shrink: 0;
       }
-      .col-body { flex: 1; overflow: hidden; }
+      .col-body {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+      }
 
       /* ── Members ── */
       .member-row {
-        display: flex; align-items: center;
+        display: flex;
+        align-items: center;
         justify-content: space-between;
         padding: 16px 24px;
         border-bottom: 1px solid var(--border);
       }
-      .member-left { display: flex; align-items: center; gap: 16px; }
+      .member-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
       .avatar {
-        width: 48px; height: 48px; border-radius: 50%;
-        background: var(--surface2); border: 2px solid var(--border);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 22px; flex-shrink: 0;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--surface2);
+        border: 2px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
       }
-      .member-name { font-size: 17px; font-weight: 700; }
-      .member-role { font-size: 13px; color: var(--muted); margin-top: 2px; }
+      .member-name {
+        font-size: 17px;
+        font-weight: 700;
+      }
+      .member-role {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
       .status-badge {
-        font-size: 12px; padding: 4px 14px; border-radius: 999px;
-        font-weight: 800; letter-spacing: 0.06em;
+        font-size: 12px;
+        padding: 4px 14px;
+        border-radius: 999px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
       }
-      .status-badge.home { background: var(--green-dim); color: var(--green); }
-      .status-badge.away { background: var(--surface2); color: var(--muted); }
-      .status-badge.unknown { background: var(--yellow-dim); color: var(--yellow); }
+      .status-badge.home {
+        background: var(--green-dim);
+        color: var(--green);
+      }
+      .status-badge.away {
+        background: var(--surface2);
+        color: var(--muted);
+      }
+      .status-badge.unknown {
+        background: var(--yellow-dim);
+        color: var(--yellow);
+      }
 
       /* ── Event feed ── */
       .event-item {
-        display: flex; align-items: flex-start; gap: 12px;
-        padding: 12px 24px; border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 24px;
+        border-bottom: 1px solid var(--border);
       }
       .event-dot {
-        width: 8px; height: 8px; border-radius: 50%;
-        background: var(--blue); margin-top: 5px; flex-shrink: 0;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--blue);
+        margin-top: 5px;
+        flex-shrink: 0;
       }
-      .event-type { font-size: 15px; font-weight: 700; }
-      .event-loc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+      .event-dot.ring {
+        background: var(--green);
+      }
+      .event-dot.mcp {
+        background: var(--purple);
+      }
+      .event-dot.manual {
+        background: var(--yellow);
+      }
+      .event-type {
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .event-loc {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
       .event-time {
-        font-size: 13px; color: var(--muted);
-        margin-left: auto; white-space: nowrap; padding-left: 12px;
+        font-size: 13px;
+        color: var(--muted);
+        margin-left: auto;
+        white-space: nowrap;
+        padding-left: 12px;
       }
 
       /* ── Incidents ── */
@@ -154,48 +267,100 @@
         border: 1px solid var(--border);
         padding: 20px 22px;
       }
-      .incident-card.tier-escalate { border-left: 4px solid var(--red); }
-      .incident-card.tier-ask      { border-left: 4px solid var(--yellow); }
-      .incident-card.tier-inform   { border-left: 4px solid var(--blue); }
+      .incident-card.tier-escalate {
+        border-left: 4px solid var(--red);
+      }
+      .incident-card.tier-ask {
+        border-left: 4px solid var(--yellow);
+      }
+      .incident-card.tier-inform {
+        border-left: 4px solid var(--blue);
+      }
       .incident-header {
-        display: flex; align-items: center;
-        justify-content: space-between; margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
       }
       .incident-type {
-        font-size: 13px; font-weight: 800;
-        text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
       }
       .tier-pill {
-        font-size: 12px; font-weight: 800;
-        text-transform: uppercase; letter-spacing: 0.1em;
-        padding: 4px 12px; border-radius: 6px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 4px 12px;
+        border-radius: 6px;
       }
-      .tier-pill.escalate { background: var(--red-dim); color: var(--red); }
-      .tier-pill.ask      { background: var(--yellow-dim); color: var(--yellow); }
-      .tier-pill.inform   { background: var(--blue-dim); color: var(--blue); }
+      .tier-pill.escalate {
+        background: var(--red-dim);
+        color: var(--red);
+      }
+      .tier-pill.ask {
+        background: var(--yellow-dim);
+        color: var(--yellow);
+      }
+      .tier-pill.inform {
+        background: var(--blue-dim);
+        color: var(--blue);
+      }
       .incident-reasoning {
-        font-size: 15px; line-height: 1.6; margin-bottom: 14px;
+        font-size: 15px;
+        line-height: 1.6;
+        margin-bottom: 14px;
       }
       .conf-row {
-        display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
       }
       .conf-bar-wrap {
-        flex: 1; height: 4px; background: var(--border);
-        border-radius: 2px; overflow: hidden;
+        flex: 1;
+        height: 4px;
+        background: var(--border);
+        border-radius: 2px;
+        overflow: hidden;
       }
-      .conf-bar { height: 100%; border-radius: 2px; }
-      .conf-bar.escalate { background: var(--red); }
-      .conf-bar.ask      { background: var(--yellow); }
-      .conf-bar.inform   { background: var(--blue); }
-      .conf-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
-      .incident-actions { display: flex; gap: 12px; }
+      .conf-bar {
+        height: 100%;
+        border-radius: 2px;
+      }
+      .conf-bar.escalate {
+        background: var(--red);
+      }
+      .conf-bar.ask {
+        background: var(--yellow);
+      }
+      .conf-bar.inform {
+        background: var(--blue);
+      }
+      .conf-label {
+        font-size: 13px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .incident-actions {
+        display: flex;
+        gap: 12px;
+      }
 
       /* ── Buttons — large for TV ── */
       .btn {
-        flex: 1; padding: 14px 0;
-        border-radius: 10px; border: 2px solid var(--border);
-        background: transparent; color: var(--text);
-        font-size: 15px; font-weight: 700; cursor: pointer;
+        flex: 1;
+        padding: 14px 0;
+        border-radius: 10px;
+        border: 2px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
         transition: all 0.15s;
       }
       .btn.focusable:focus {
@@ -210,45 +375,99 @@
       }
 
       .all-clear {
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        height: 200px; gap: 14px; color: var(--muted);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        gap: 14px;
+        color: var(--muted);
       }
-      .all-clear .icon { font-size: 56px; }
-      .all-clear .msg  { font-size: 18px; }
+      .all-clear .icon {
+        font-size: 56px;
+      }
+      .all-clear .msg {
+        font-size: 18px;
+      }
 
       /* ── Right column: Guardian status panel ── */
-      .status-panel { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+      .status-panel {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 0;
+        overflow: hidden;
+      }
+      #policyBlock {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+      }
 
       .status-block {
         background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 20px 22px;
+        border-radius: 10px;
+        padding: 10px 14px;
       }
       .status-block-title {
-        font-size: 11px; text-transform: uppercase;
-        letter-spacing: 0.12em; color: var(--muted); margin-bottom: 12px;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        margin-bottom: 4px;
       }
       .status-value {
-        font-size: 28px; font-weight: 800; letter-spacing: 0.04em;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
       }
-      .status-value.green { color: var(--green); }
-      .status-value.yellow { color: var(--yellow); }
-      .status-value.red { color: var(--red); }
-      .status-value.muted { color: var(--muted); }
+      .status-value.green {
+        color: var(--green);
+      }
+      .status-value.yellow {
+        color: var(--yellow);
+      }
+      .status-value.red {
+        color: var(--red);
+      }
+      .status-value.muted {
+        color: var(--muted);
+      }
+
+      /* compact row for system + incident count side by side */
+      .status-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
 
       .action-grid {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
       }
       .action-btn {
-        padding: 18px 12px; border-radius: 12px;
-        border: 2px solid var(--border); background: var(--surface2);
-        color: var(--text); font-size: 14px; font-weight: 700;
-        cursor: pointer; text-align: center; line-height: 1.4;
+        padding: 10px 8px;
+        border-radius: 8px;
+        border: 2px solid var(--border);
+        background: var(--surface2);
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        text-align: center;
+        line-height: 1.3;
         transition: all 0.15s;
       }
-      .action-btn .a-icon { font-size: 24px; display: block; margin-bottom: 6px; }
+      .action-btn .a-icon {
+        font-size: 18px;
+        display: block;
+        margin-bottom: 4px;
+      }
       .action-btn.focusable:focus {
         border-color: var(--focus);
         background: var(--blue-dim);
@@ -257,47 +476,235 @@
         outline: none;
       }
 
+      /* policy list inside its block */
+      #policyList div {
+        padding: 5px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--muted);
+      }
+      #policyList div:last-child {
+        border-bottom: none;
+      }
+
+      /* ── Tabs ── */
+      .tab-btn {
+        flex: 1;
+        padding: 14px 0;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .tab-btn.tab-active {
+        color: var(--text);
+        border-bottom-color: var(--blue);
+      }
+      .tab-btn.focusable:focus {
+        background: var(--blue-dim);
+        outline: none;
+      }
+
+      /* ── Simulate panel ── */
+      .sim-section {
+        border-bottom: 1px solid var(--border);
+      }
+      .sim-section-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--purple);
+        padding: 10px 16px 8px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      .sim-btn {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 12px 16px;
+        border: none;
+        border-bottom: 1px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+        text-align: left;
+        transition: background 0.12s;
+      }
+      .sim-btn:last-child {
+        border-bottom: none;
+      }
+      .sim-btn.focusable:focus {
+        background: var(--surface2);
+        outline: 3px solid var(--focus);
+        outline-offset: -3px;
+      }
+      .sim-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+      .sim-btn .s-icon {
+        font-size: 20px;
+        flex-shrink: 0;
+        width: 28px;
+        text-align: center;
+      }
+      .sim-btn .s-name {
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .sim-btn .s-desc {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      /* ── Custom form ── */
+      .custom-form {
+        padding: 14px 16px;
+      }
+      .form-row {
+        margin-bottom: 12px;
+      }
+      .form-row label {
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .form-row input,
+      .form-row select {
+        width: 100%;
+        padding: 9px 11px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        font-size: 14px;
+        outline: none;
+      }
+      .form-row input:focus,
+      .form-row select:focus,
+      .form-row input.focusable:focus,
+      .form-row select.focusable:focus {
+        border-color: var(--purple);
+        box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
+      }
+      .form-row select option {
+        background: var(--surface2);
+      }
+      .fire-btn {
+        width: 100%;
+        padding: 12px;
+        background: rgba(167, 139, 250, 0.12);
+        border: 2px solid var(--purple);
+        border-radius: 8px;
+        color: var(--purple);
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .fire-btn.focusable:focus {
+        background: rgba(167, 139, 250, 0.22);
+        outline: 3px solid var(--purple);
+        outline-offset: 2px;
+      }
+      .fire-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
       /* ── D-pad hint bar ── */
       #dpad-hint {
-        position: fixed; bottom: 56px; left: 50%;
+        position: fixed;
+        bottom: 56px;
+        left: 50%;
         transform: translateX(-50%);
-        display: flex; gap: 20px; align-items: center;
-        background: rgba(15,21,32,0.92);
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        background: rgba(15, 21, 32, 0.92);
         border: 1px solid var(--border);
-        border-radius: 999px; padding: 8px 24px;
-        font-size: 13px; color: var(--muted);
+        border-radius: 999px;
+        padding: 8px 24px;
+        font-size: 13px;
+        color: var(--muted);
         pointer-events: none;
       }
       .hint-key {
-        background: var(--surface2); border: 1px solid var(--border);
-        border-radius: 5px; padding: 2px 8px;
-        font-size: 12px; color: var(--text);
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        padding: 2px 8px;
+        font-size: 12px;
+        color: var(--text);
       }
 
       /* ── Status bar ── */
       #statusbar {
         border-top: 1px solid var(--border);
         background: var(--surface);
-        display: flex; align-items: center;
-        padding: 0 32px; gap: 28px;
-        font-size: 13px; color: var(--muted);
+        display: flex;
+        align-items: center;
+        padding: 0 32px;
+        gap: 28px;
+        font-size: 13px;
+        color: var(--muted);
       }
 
       /* ── Toast ── */
       #toast {
-        position: fixed; bottom: 72px; right: 24px;
-        max-width: 420px; padding: 16px 20px;
-        border-radius: 14px; font-size: 15px; line-height: 1.5;
+        position: fixed;
+        bottom: 72px;
+        right: 24px;
+        max-width: 420px;
+        padding: 16px 20px;
+        border-radius: 14px;
+        font-size: 15px;
+        line-height: 1.5;
         border: 1px solid transparent;
-        opacity: 0; transform: translateY(8px);
-        transition: opacity 0.22s, transform 0.22s;
-        pointer-events: none; z-index: 50;
+        opacity: 0;
+        transform: translateY(8px);
+        transition:
+          opacity 0.22s,
+          transform 0.22s;
+        pointer-events: none;
+        z-index: 50;
       }
-      #toast.show { opacity: 1; transform: translateY(0); }
-      #toast.inform   { background: var(--blue-dim);   border-color: rgba(79,142,245,0.4); }
-      #toast.ask      { background: var(--yellow-dim);  border-color: rgba(245,200,66,0.4); }
-      #toast.escalate { background: var(--red-dim);     border-color: rgba(240,79,79,0.4); }
-      #toast.error    { background: var(--surface2);    border-color: var(--border); color: var(--muted); }
+      #toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #toast.inform {
+        background: var(--blue-dim);
+        border-color: rgba(79, 142, 245, 0.4);
+      }
+      #toast.ask {
+        background: var(--yellow-dim);
+        border-color: rgba(245, 200, 66, 0.4);
+      }
+      #toast.escalate {
+        background: var(--red-dim);
+        border-color: rgba(240, 79, 79, 0.4);
+      }
+      #toast.error {
+        background: var(--surface2);
+        border-color: var(--border);
+        color: var(--muted);
+      }
     </style>
   </head>
   <body>
@@ -322,42 +729,79 @@
         <!-- COL 1: Household + Events -->
         <div class="col">
           <div class="col-header">Household</div>
-          <div id="members" style="flex-shrink:0;border-bottom:1px solid var(--border)"></div>
-          <div class="col-header" style="border-top:none">Recent Events</div>
-          <div class="col-body" id="eventFeed" style="overflow:hidden"></div>
+          <div
+            class="col-body"
+            id="members"
+            style="max-height: 280px; border-bottom: 1px solid var(--border)"
+          ></div>
+          <div class="col-header" style="border-top: none; flex-shrink: 0">
+            Recent Events
+          </div>
+          <div class="col-body" id="eventFeed"></div>
         </div>
 
         <!-- COL 2: Active Incidents -->
         <div class="col">
           <div class="col-header">Active Incidents</div>
-          <div class="col-body" id="incidents" style="overflow-y:auto"></div>
+          <div class="col-body" id="incidents"></div>
         </div>
 
-        <!-- COL 3: Guardian Status + Actions -->
+        <!-- COL 3: Tabbed — Status | Simulate -->
         <div class="col">
-          <div class="col-header">Guardian Status</div>
-          <div class="col-body status-panel">
-
-            <div class="status-block">
-              <div class="status-block-title">System</div>
-              <div id="sysStatus" class="status-value muted">LOADING…</div>
+          <div class="col-header" style="padding: 0">
+            <div style="display: flex">
+              <button
+                id="tabStatus"
+                class="tab-btn focusable tab-active"
+                onclick="switchTab('status')"
+              >
+                📊 Status
+              </button>
+              <button
+                id="tabSim"
+                class="tab-btn focusable"
+                onclick="switchTab('sim')"
+              >
+                ⚡ Simulate
+              </button>
+              <button
+                id="tabPolicy"
+                class="tab-btn focusable"
+                onclick="switchTab('policy')"
+              >
+                📝 Rules
+              </button>
             </div>
+          </div>
 
-            <div class="status-block">
-              <div class="status-block-title">Active Incidents</div>
-              <div id="incCount" class="status-value green">0</div>
+          <!-- TAB: Status -->
+          <div id="panelStatus" class="col-body status-panel">
+            <div class="status-row">
+              <div class="status-block">
+                <div class="status-block-title">System</div>
+                <div id="sysStatus" class="status-value muted">LOADING…</div>
+              </div>
+              <div class="status-block">
+                <div class="status-block-title">Incidents</div>
+                <div id="incCount" class="status-value green">0</div>
+              </div>
             </div>
-
             <div class="status-block">
               <div class="status-block-title">Quick Actions</div>
               <div class="action-grid">
-                <button class="action-btn focusable" onclick="toggleMonitoring()">
+                <button
+                  class="action-btn focusable"
+                  onclick="toggleMonitoring()"
+                >
                   <span class="a-icon">🔔</span>Toggle Monitor
                 </button>
                 <button class="action-btn focusable" onclick="checkStatus()">
-                  <span class="a-icon">📊</span>Refresh Status
+                  <span class="a-icon">📊</span>Refresh
                 </button>
-                <button class="action-btn focusable" onclick="runWellnessCheck()">
+                <button
+                  class="action-btn focusable"
+                  onclick="runWellnessCheck()"
+                >
                   <span class="a-icon">❤️</span>Wellness Check
                 </button>
                 <button class="action-btn focusable" onclick="viewPolicies()">
@@ -365,12 +809,345 @@
                 </button>
               </div>
             </div>
-
-            <div class="status-block" id="policyBlock" style="display:none">
-              <div class="status-block-title">Active Policies</div>
-              <div id="policyList" style="font-size:13px;color:var(--muted);line-height:1.8"></div>
+            <div
+              class="status-block"
+              id="policyBlock"
+              style="display: none; flex: 1; overflow-y: auto"
+            >
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  margin-bottom: 8px;
+                "
+              >
+                <div class="status-block-title" style="margin-bottom: 0">
+                  Active Policies
+                </div>
+                <button
+                  class="action-btn focusable"
+                  style="padding: 4px 12px; font-size: 11px"
+                  onclick="hidePolicies()"
+                >
+                  ✕ Close
+                </button>
+              </div>
+              <div id="policyList"></div>
             </div>
+          </div>
 
+          <!-- TAB: Rules -->
+          <div
+            id="panelPolicy"
+            class="col-body status-panel"
+            style="display: none"
+          >
+            <div class="status-block">
+              <div class="status-block-title">Teach Guardian a new rule</div>
+              <p
+                style="font-size: 13px; color: var(--muted); margin: 6px 0 12px"
+              >
+                Write a plain-language safety rule. Guardian compiles it into a
+                structured policy via Bedrock and saves it to the store.
+                Requires
+                <code style="color: var(--purple)">DECISION_ENGINE=bedrock</code>.
+                On the memory backend rules are lost on restart — use
+                <code style="color: var(--purple)">STORE_BACKEND=dynamo</code> or
+                <code style="color: var(--purple)">postgres</code> for persistence.
+              </p>
+              <div class="form-row">
+                <label>Rule</label>
+                <input
+                  id="pRule"
+                  class="focusable"
+                  type="text"
+                  placeholder="e.g. If someone knocks after 10pm, always wake me"
+                />
+              </div>
+              <button class="fire-btn focusable" onclick="addPolicy()">
+                📝 Save Rule
+              </button>
+            </div>
+            <div
+              class="status-block"
+              id="savedPolicyBlock"
+              style="display: none"
+            >
+              <div class="status-block-title">Saved as</div>
+              <div
+                id="savedPolicyDetail"
+                style="font-size: 13px; line-height: 1.6"
+              ></div>
+            </div>
+            <div class="status-block">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  margin-bottom: 8px;
+                "
+              >
+                <div class="status-block-title" style="margin-bottom: 0">
+                  Active Policies
+                </div>
+                <button
+                  class="action-btn focusable"
+                  style="padding: 4px 12px; font-size: 11px"
+                  onclick="viewPolicies()"
+                >
+                  ↻ Refresh
+                </button>
+              </div>
+              <div id="policyList2"></div>
+            </div>
+          </div>
+
+          <!-- TAB: Simulate -->
+          <div id="panelSim" class="col-body" style="display: none">
+            <div class="sim-section">
+              <div class="sim-section-title">🔒 Security</div>
+              <button
+                class="sim-btn focusable"
+                onclick="run('ring', 'person_detected', 'front_door', -1)"
+              >
+                <span class="s-icon">🚶</span>
+                <div>
+                  <div class="s-name">Unknown Visitor</div>
+                  <div class="s-desc">Scenario B · escalate</div>
+                </div>
+              </button>
+              <button
+                class="sim-btn focusable"
+                onclick="run('ring', 'person_detected', 'front_door', 1)"
+              >
+                <span class="s-icon">🧹</span>
+                <div>
+                  <div class="s-name">Expected Visitor</div>
+                  <div class="s-desc">Scenario A · inform</div>
+                </div>
+              </button>
+              <button
+                class="sim-btn focusable"
+                onclick="run('ring', 'door_activity', 'front_door')"
+              >
+                <span class="s-icon">🔓</span>
+                <div>
+                  <div class="s-name">Door Left Open</div>
+                  <div class="s-desc">Prolonged door activity</div>
+                </div>
+              </button>
+              <button
+                class="sim-btn focusable"
+                onclick="run('ring', 'vehicle_detected', 'driveway', -1)"
+              >
+                <span class="s-icon">🚗</span>
+                <div>
+                  <div class="s-name">Unknown Vehicle</div>
+                  <div class="s-desc">Unrecognised car in driveway</div>
+                </div>
+              </button>
+              <button
+                class="sim-btn focusable"
+                onclick="run('ring', 'package_theft', 'porch', -1)"
+              >
+                <span class="s-icon">📦</span>
+                <div>
+                  <div class="s-name">Package Theft</div>
+                  <div class="s-desc">Package removed by unknown person</div>
+                </div>
+              </button>
+              <button
+                class="sim-btn focusable"
+                onclick="runNight('ring', 'motion', 'back_yard')"
+              >
+                <span class="s-icon">🔦</span>
+                <div>
+                  <div class="s-name">Late-Night Motion</div>
+                  <div class="s-desc">Motion after midnight</div>
+                </div>
+              </button>
+              <button
+                class="sim-btn focusable"
+                onclick="run('ring', 'window_activity', 'garage')"
+              >
+                <span class="s-icon">🔑</span>
+                <div>
+                  <div class="s-name">Unexpected Garage Open</div>
+                  <div class="s-desc">Garage door outside schedule</div>
+                </div>
+              </button>
+              <button
+                class="sim-btn focusable"
+                onclick="
+                  runOutsideWindow('ring', 'person_detected', 'front_door')
+                "
+              >
+                <span class="s-icon">👷</span>
+                <div>
+                  <div class="s-name">Contractor Off-Schedule</div>
+                  <div class="s-desc">Arrival outside booked window</div>
+                </div>
+              </button>
+            </div>
+            <div class="sim-section">
+              <div class="sim-section-title">❤️ Wellness</div>
+              <button
+                class="sim-btn focusable"
+                onclick="run('system', 'no_response', 'bedroom')"
+              >
+                <span class="s-icon">❓</span>
+                <div>
+                  <div class="s-name">No Response</div>
+                  <div class="s-desc">Wellness check · ask</div>
+                </div>
+              </button>
+              <button
+                class="sim-btn focusable"
+                onclick="run('system', 'routine_deviation', 'kitchen')"
+              >
+                <span class="s-icon">🛌</span>
+                <div>
+                  <div class="s-name">Mary Not Up by 9AM</div>
+                  <div class="s-desc">No kitchen activity by expected time</div>
+                </div>
+              </button>
+              <button
+                class="sim-btn focusable"
+                onclick="run('system', 'medication_missed', 'kitchen')"
+              >
+                <span class="s-icon">💊</span>
+                <div>
+                  <div class="s-name">Medication Missed</div>
+                  <div class="s-desc">No activity at medication time</div>
+                </div>
+              </button>
+              <button
+                class="sim-btn focusable"
+                onclick="run('system', 'fall_detected', 'bathroom')"
+              >
+                <span class="s-icon">🆘</span>
+                <div>
+                  <div class="s-name">Fall Detected</div>
+                  <div class="s-desc">Sudden impact in bathroom</div>
+                </div>
+              </button>
+              <button
+                class="sim-btn focusable"
+                onclick="
+                  runEarlyReturn('ring', 'person_detected', 'front_door')
+                "
+              >
+                <span class="s-icon">🧒</span>
+                <div>
+                  <div class="s-name">James Home Early</div>
+                  <div class="s-desc">Child back before school ends</div>
+                </div>
+              </button>
+            </div>
+            <div class="sim-section">
+              <div class="sim-section-title">⚡ Patterns</div>
+              <button class="sim-btn focusable" onclick="runPattern()">
+                <span class="s-icon">⚡</span>
+                <div>
+                  <div class="s-name">Event Cluster</div>
+                  <div class="s-desc">Scenario D · 3 events in 10 min</div>
+                </div>
+              </button>
+              <button class="sim-btn focusable" onclick="runNightCluster()">
+                <span class="s-icon">🌙</span>
+                <div>
+                  <div class="s-name">Late-Night Cluster</div>
+                  <div class="s-desc">Motion + door + window after 11PM</div>
+                </div>
+              </button>
+              <button class="sim-btn focusable" onclick="runRepeatedDoorbell()">
+                <span class="s-icon">🔁</span>
+                <div>
+                  <div class="s-name">Repeated Doorbell</div>
+                  <div class="s-desc">3 rings in 5 min, no answer</div>
+                </div>
+              </button>
+              <button class="sim-btn focusable" onclick="runGhostMotion()">
+                <span class="s-icon">🏠</span>
+                <div>
+                  <div class="s-name">Motion While Empty</div>
+                  <div class="s-desc">Everyone away, motion inside</div>
+                </div>
+              </button>
+            </div>
+            <div class="sim-section">
+              <div class="sim-section-title">🛠 Custom Event</div>
+              <div class="custom-form">
+                <div class="form-row">
+                  <label>Source</label>
+                  <select id="cSource" class="focusable">
+                    <option value="ring">ring</option>
+                    <option value="manual">manual</option>
+                    <option value="system">system</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label>Event Type</label>
+                  <input
+                    id="cType"
+                    class="focusable"
+                    type="text"
+                    placeholder="e.g. person_detected"
+                    list="typeList"
+                  />
+                  <datalist id="typeList">
+                    <option value="person_detected" />
+                    <option value="door_activity" />
+                    <option value="window_activity" />
+                    <option value="motion" />
+                    <option value="vehicle_detected" />
+                    <option value="package_detected" />
+                    <option value="package_theft" />
+                    <option value="no_response" />
+                    <option value="fall_detected" />
+                    <option value="routine_deviation" />
+                    <option value="medication_missed" />
+                    <option value="doorbell" />
+                  </datalist>
+                </div>
+                <div class="form-row">
+                  <label>Location</label>
+                  <input
+                    id="cLocation"
+                    class="focusable"
+                    type="text"
+                    placeholder="e.g. front_door"
+                    list="locList"
+                  />
+                  <datalist id="locList">
+                    <option value="front_door" />
+                    <option value="back_door" />
+                    <option value="garage" />
+                    <option value="driveway" />
+                    <option value="side_yard" />
+                    <option value="back_yard" />
+                    <option value="porch" />
+                    <option value="kitchen" />
+                    <option value="bedroom" />
+                    <option value="bathroom" />
+                    <option value="living_room" />
+                  </datalist>
+                </div>
+                <div class="form-row">
+                  <label>Timestamp (optional)</label>
+                  <input
+                    id="cTimestamp"
+                    class="focusable"
+                    type="datetime-local"
+                  />
+                </div>
+                <button class="fire-btn focusable" onclick="runCustom()">
+                  ⚡ Fire Event
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -397,18 +1174,30 @@
     <script>
       // ── Clock ──────────────────────────────────────────────────────────
       function tickClock() {
-        document.getElementById('clock').textContent =
-          new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById("clock").textContent =
+          new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          });
       }
-      tickClock(); setInterval(tickClock, 1000);
+      tickClock();
+      setInterval(tickClock, 1000);
 
       // ── D-pad navigation ───────────────────────────────────────────────
       // Fire TV remote sends standard key codes. We intercept arrow keys
       // and move focus between all .focusable elements in DOM order.
-      const KEYS = { UP: 38, DOWN: 40, LEFT: 37, RIGHT: 39, ENTER: 13, BACK: 8 };
+      const KEYS = {
+        UP: 38,
+        DOWN: 40,
+        LEFT: 37,
+        RIGHT: 39,
+        ENTER: 13,
+        BACK: 8,
+      };
 
-      document.addEventListener('keydown', (e) => {
-        const focusables = Array.from(document.querySelectorAll('.focusable'));
+      document.addEventListener("keydown", (e) => {
+        const focusables = Array.from(document.querySelectorAll(".focusable"));
         const current = document.activeElement;
         const idx = focusables.indexOf(current);
 
@@ -424,13 +1213,13 @@
           if (current && current !== document.body) current.click();
         } else if (e.keyCode === KEYS.BACK) {
           // Back button: return focus to monitoring toggle
-          document.getElementById('monBtn').focus();
+          document.getElementById("monBtn").focus();
         }
       });
 
       // Set initial focus
-      window.addEventListener('load', () => {
-        setTimeout(() => document.getElementById('monBtn').focus(), 300);
+      window.addEventListener("load", () => {
+        setTimeout(() => document.getElementById("monBtn").focus(), 300);
       });
 
       // ── MCP helper ─────────────────────────────────────────────────────
@@ -438,14 +1227,27 @@
       // the Guardian Express app). On Fire TV, the app is loaded from
       // the Guardian server URL configured in the WAT manifest.
       async function mcp(tool, args) {
-        const res = await fetch('/mcp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' },
-          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: tool, arguments: args } }),
+        const res = await fetch("/mcp", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json, text/event-stream",
+          },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "tools/call",
+            params: { name: tool, arguments: args },
+          }),
         });
+        if (!res.ok) throw new Error(`HTTP ${res.status} from /mcp`);
         const raw = await res.text();
-        const dataLine = raw.split('\n').find(l => l.startsWith('data:'));
+        const dataLine = raw.split("\n").find((l) => l.startsWith("data:"));
         const envelope = JSON.parse(dataLine ? dataLine.slice(5).trim() : raw);
+        if (envelope.error)
+          throw new Error(
+            envelope.error.message ?? JSON.stringify(envelope.error),
+          );
         const inner = envelope.result?.content?.[0]?.text;
         return inner ? JSON.parse(inner) : envelope;
       }
@@ -454,96 +1256,191 @@
       let monitoringState = false;
       async function toggleMonitoring() {
         monitoringState = !monitoringState;
-        await mcp('set_monitoring', { active: monitoringState });
+        await mcp("set_monitoring", { active: monitoringState });
         refresh();
       }
 
       // ── Wellness check ─────────────────────────────────────────────────
       async function runWellnessCheck() {
         try {
-          const result = await mcp('start_wellness_check', {
-            memberId: 'm-mary',
-            reason: 'Manual wellness check requested from Fire TV command center',
+          await mcp("start_wellness_check", {
+            memberId: "m-mary",
+            reason:
+              "Manual wellness check requested from Fire TV command center",
           });
-          showToast('ask', '❤️ Wellness check started for Mary. Waiting for response.');
+          showToast(
+            "ask",
+            "❤️ Wellness check started for Mary. Waiting for response.",
+          );
           refresh();
-        } catch (e) { showToast('error', e.message); }
+        } catch (e) {
+          showToast(
+            "error",
+            "Wellness check failed: " + (e.message || "unknown error"),
+          );
+        }
       }
 
       // ── View policies ──────────────────────────────────────────────────
+      async function loadPolicyList() {
+        try {
+          const policies = await fetch("/api/policies").then((r) => r.json());
+          const renderPolicy = (p) =>
+            `<div style="margin-bottom:6px">• ${p.description} <span style="color:var(--blue)">[${p.tier}]</span>${p.notes ? ' <span style="color:var(--red);font-size:11px"> · hard constraint</span>' : ""}</div>`;
+          const html = policies.length
+            ? policies.map(renderPolicy).join("")
+            : "<div>No policies found.</div>";
+          document.getElementById("policyList").innerHTML = html;
+          document.getElementById("policyList2").innerHTML = html;
+        } catch (e) {
+          console.error("loadPolicyList failed", e);
+        }
+      }
+
+      async function addPolicy() {
+        const rule = document.getElementById("pRule").value.trim();
+        if (!rule) {
+          showToast("error", "Enter a rule first.");
+          return;
+        }
+        document
+          .querySelectorAll(".fire-btn")
+          .forEach((b) => (b.disabled = true));
+        try {
+          const result = await mcp("add_policy", { rule });
+          if (result.isError) {
+            showToast(
+              "error",
+              result.content?.[0]?.text ?? "Policy compilation failed.",
+            );
+            return;
+          }
+          const policy = result.policy;
+          const block = document.getElementById("savedPolicyBlock");
+          document.getElementById("savedPolicyDetail").innerHTML =
+            `<strong>${policy.description}</strong><br>
+            Tier: <span style="color:var(--blue)">${policy.tier}</span> &nbsp;·&nbsp;
+            ID: <code style="color:var(--muted)">${policy.id}</code>
+            ${policy.notes ? `<br><span style="color:var(--red);font-size:12px">${policy.notes}</span>` : ""}`;
+          block.style.display = "block";
+          document.getElementById("pRule").value = "";
+          showToast(
+            "inform",
+            `📝 Saved: "${policy.description}" [${policy.tier}]`,
+          );
+          loadPolicyList();
+        } catch (e) {
+          showToast("error", e.message);
+        } finally {
+          document
+            .querySelectorAll(".fire-btn")
+            .forEach((b) => (b.disabled = false));
+        }
+      }
+
       async function viewPolicies() {
         try {
-          const { policies } = await mcp('get_household_context', {});
-          const block = document.getElementById('policyBlock');
-          const list = document.getElementById('policyList');
-          list.innerHTML = policies.map(p =>
-            `<div style="margin-bottom:6px">• ${p.description} <span style="color:var(--blue)">[${p.tier}]</span></div>`
-          ).join('');
-          block.style.display = 'block';
-        } catch (e) { showToast('error', e.message); }
+          await loadPolicyList();
+          document.getElementById("policyBlock").style.display = "block";
+          const count = document.getElementById("policyList").children.length;
+          showToast("inform", `📋 ${count} policies loaded.`);
+        } catch (e) {
+          showToast(
+            "error",
+            "Policies failed: " + (e.message || "unknown error"),
+          );
+        }
+      }
+
+      function hidePolicies() {
+        document.getElementById("policyBlock").style.display = "none";
       }
 
       // ── Check status (manual refresh) ─────────────────────────────────
       async function checkStatus() {
-        await refresh();
-        showToast('inform', '📊 Status refreshed.');
+        try {
+          await refresh();
+          showToast("inform", "📊 Status refreshed.");
+        } catch (e) {
+          showToast(
+            "error",
+            "Refresh failed: " + (e.message || "unknown error"),
+          );
+        }
       }
 
       // ── Incident actions ───────────────────────────────────────────────
       async function act(id, action) {
-        await fetch(`/api/incidents/${id}/${action}`, { method: 'POST' });
+        await fetch(`/api/incidents/${id}/${action}`, { method: "POST" });
         refresh();
       }
 
       // ── Render helpers ─────────────────────────────────────────────────
-      const AVATARS = { owner: '👤', parent: '👵', child: '🧒', caregiver: '🩺', other: '👤' };
+      const AVATARS = {
+        owner: "👤",
+        parent: "👵",
+        child: "🧒",
+        caregiver: "🩺",
+        other: "👤",
+      };
 
       function renderMembers(members) {
-        document.getElementById('members').innerHTML = members.map(m => `
+        document.getElementById("members").innerHTML = members
+          .map(
+            (m) => `
           <div class="member-row">
             <div class="member-left">
-              <div class="avatar">${AVATARS[m.role] ?? '👤'}</div>
+              <div class="avatar">${AVATARS[m.role] ?? "👤"}</div>
               <div>
                 <div class="member-name">${m.name}</div>
-                <div class="member-role">${m.role}${m.vulnerable ? ' · <span style="color:var(--yellow)">vulnerable</span>' : ''}</div>
+                <div class="member-role">${m.role}${m.vulnerable ? ' · <span style="color:var(--yellow)">vulnerable</span>' : ""}</div>
               </div>
             </div>
-            <span class="status-badge ${m.status ?? 'unknown'}">${(m.status ?? 'unknown').toUpperCase()}</span>
-          </div>`).join('');
+            <span class="status-badge ${m.status ?? "unknown"}">${(m.status ?? "unknown").toUpperCase()}</span>
+          </div>`,
+          )
+          .join("");
       }
 
       function renderEvents(events) {
-        const el = document.getElementById('eventFeed');
+        const el = document.getElementById("eventFeed");
         if (!events.length) {
-          el.innerHTML = '<div style="color:var(--muted);font-size:14px;padding:14px 24px">No events yet.</div>';
+          el.innerHTML =
+            '<div style="color:var(--muted);font-size:14px;padding:14px 24px">No events yet.</div>';
           return;
         }
-        // Show only as many events as fit (no scroll on TV)
-        el.innerHTML = events.slice(0, 6).map(e => `
+        el.innerHTML = events
+          .slice(0, 20)
+          .map(
+            (e) => `
           <div class="event-item">
-            <span class="event-dot"></span>
+            <span class="event-dot ${["ring", "mcp", "manual"].includes(e.source) ? e.source : ""}"></span>
             <div style="flex:1;min-width:0">
-              <div class="event-type">${e.type.replace(/_/g,' ')}</div>
+              <div class="event-type">${e.type.replace(/_/g, " ")}</div>
               <div class="event-loc">📍 ${e.location} · ${e.source}</div>
             </div>
-            <span class="event-time">${new Date(e.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>
-          </div>`).join('');
+            <span class="event-time">${new Date(e.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+          </div>`,
+          )
+          .join("");
       }
 
       function renderIncidents(incidents) {
-        const el = document.getElementById('incidents');
+        const el = document.getElementById("incidents");
         if (!incidents.length) {
-          el.innerHTML = '<div class="all-clear"><div class="icon">🟢</div><div class="msg">All clear — no active incidents</div></div>';
+          el.innerHTML =
+            '<div class="all-clear"><div class="icon">🟢</div><div class="msg">All clear — no active incidents</div></div>';
           return;
         }
-        el.innerHTML = incidents.map(i => {
-          const tier = i.tier ?? 'ask';
-          return `<div class="incident-card tier-${tier}">
+        el.innerHTML = incidents
+          .map((i) => {
+            const tier = i.tier ?? "ask";
+            return `<div class="incident-card tier-${tier}">
             <div class="incident-header">
-              <span class="incident-type">${i.type.replace(/_/g,' ')}</span>
+              <span class="incident-type">${i.type.replace(/_/g, " ")}</span>
               <span class="tier-pill ${tier}">${tier.toUpperCase()}</span>
             </div>
-            <div class="incident-reasoning">${i.reasoning ?? '—'}</div>
+            <div class="incident-reasoning">${i.reasoning ?? "—"}</div>
             <div class="conf-row">
               <span class="conf-label">Confidence ${i.confidence ?? 0}%</span>
               <div class="conf-bar-wrap"><div class="conf-bar ${tier}" style="width:${i.confidence ?? 0}%"></div></div>
@@ -553,50 +1450,337 @@
               <button class="btn danger focusable" onclick="act('${i.id}','escalate')">🚨 Escalate</button>
             </div>
           </div>`;
-        }).join('');
+          })
+          .join("");
       }
 
       // ── Main refresh loop ──────────────────────────────────────────────
       async function refresh() {
         try {
           const [status, events] = await Promise.all([
-            fetch('/api/status').then(r => r.json()),
-            fetch('/api/events?limit=6').then(r => r.json()),
+            fetch("/api/status").then((r) => r.json()),
+            fetch("/api/events?limit=20").then((r) => r.json()),
           ]);
 
           monitoringState = !!status.monitoringActive;
-          const btn = document.getElementById('monBtn');
-          btn.className = monitoringState ? 'focusable active' : 'focusable';
-          document.getElementById('monLabel').textContent = monitoringState ? 'MONITORING ON' : 'MONITORING OFF';
+          const btn = document.getElementById("monBtn");
+          btn.className = monitoringState ? "focusable active" : "focusable";
+          document.getElementById("monLabel").textContent = monitoringState
+            ? "MONITORING ON"
+            : "MONITORING OFF";
 
           renderMembers(status.members || []);
           renderIncidents(status.activeIncidents || []);
           renderEvents(events || []);
 
           const inc = (status.activeIncidents || []).length;
-          const incEl = document.getElementById('incCount');
+          const incEl = document.getElementById("incCount");
           incEl.textContent = inc;
-          incEl.className = 'status-value ' + (inc === 0 ? 'green' : inc >= 2 ? 'red' : 'yellow');
+          incEl.className =
+            "status-value " +
+            (inc === 0 ? "green" : inc >= 2 ? "red" : "yellow");
 
-          document.getElementById('sysStatus').textContent = monitoringState ? 'ACTIVE' : 'STANDBY';
-          document.getElementById('sysStatus').className = 'status-value ' + (monitoringState ? 'green' : 'muted');
+          document.getElementById("sysStatus").textContent = monitoringState
+            ? "ACTIVE"
+            : "STANDBY";
+          document.getElementById("sysStatus").className =
+            "status-value " + (monitoringState ? "green" : "muted");
 
-          document.getElementById('sbIncidents').textContent = `● ${inc} active incident${inc !== 1 ? 's' : ''}`;
-          document.getElementById('sbEvents').textContent = `● ${(events || []).length} events`;
-          document.getElementById('sbUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+          document.getElementById("sbIncidents").textContent =
+            `● ${inc} active incident${inc !== 1 ? "s" : ""}`;
+          document.getElementById("sbEvents").textContent =
+            `● ${(events || []).length} events`;
+          document.getElementById("sbUpdated").textContent =
+            "Updated " + new Date().toLocaleTimeString();
         } catch (e) {
-          console.error('refresh failed', e);
+          console.error("refresh failed", e);
         }
       }
 
       // ── Toast ──────────────────────────────────────────────────────────
       let toastTimer;
       function showToast(type, msg) {
-        const el = document.getElementById('toast');
+        const el = document.getElementById("toast");
         el.className = `${type} show`;
         el.textContent = msg;
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => { el.className = ''; }, 6000);
+        toastTimer = setTimeout(() => {
+          el.className = "";
+        }, 6000);
+      }
+
+      // ── Tab switching ──────────────────────────────────────────────────────────────────
+      function switchTab(tab) {
+        document.getElementById("panelStatus").style.display =
+          tab === "status" ? "" : "none";
+        document.getElementById("panelSim").style.display =
+          tab === "sim" ? "" : "none";
+        document.getElementById("panelPolicy").style.display =
+          tab === "policy" ? "" : "none";
+        document
+          .getElementById("tabStatus")
+          .classList.toggle("tab-active", tab === "status");
+        document
+          .getElementById("tabSim")
+          .classList.toggle("tab-active", tab === "sim");
+        document
+          .getElementById("tabPolicy")
+          .classList.toggle("tab-active", tab === "policy");
+        if (tab === "policy") loadPolicyList();
+      }
+
+      // ── Simulate helpers ───────────────────────────────────────────────────────────
+      async function fireEvent(source, type, location, timestamp) {
+        const args = { source, type, location };
+        if (timestamp) args.timestamp = timestamp;
+        const { decision } = await mcp("report_event", args);
+        await mcp("create_incident", {
+          type: type.replace(/_/g, " "),
+          reasoning: decision.reasoning,
+          tier: decision.tier,
+          confidence: decision.confidence,
+        });
+        return decision;
+      }
+
+      async function fireEvents(events) {
+        let decision;
+        for (const e of events) {
+          const r = await mcp("report_event", e);
+          decision = r.decision;
+        }
+        await mcp("create_incident", {
+          type: "event cluster",
+          reasoning: decision.reasoning,
+          tier: decision.tier,
+          confidence: decision.confidence,
+        });
+        return decision;
+      }
+
+      function simBtns(disabled) {
+        document
+          .querySelectorAll(".sim-btn,.fire-btn")
+          .forEach((b) => (b.disabled = disabled));
+      }
+
+      function toastDecision(decision) {
+        const tier = decision.tier ?? "ask";
+        showToast(
+          tier,
+          `${tier.toUpperCase()} · ${decision.action.replace(/_/g, " ")} — ${decision.reasoning}`,
+        );
+      }
+
+      async function run(source, type, location, visitorOffset) {
+        simBtns(true);
+        try {
+          let ts;
+          if (visitorOffset === 1) {
+            const d = new Date();
+            d.setDate(d.getDate() + ((1 + 7 - d.getDay()) % 7 || 7));
+            d.setHours(10, 30, 0, 0);
+            ts = d.toISOString();
+          } else if (visitorOffset === -1) {
+            const d = new Date();
+            d.setDate(d.getDate() - ((d.getDay() + 1) % 7 || 7));
+            d.setHours(20, 0, 0, 0);
+            ts = d.toISOString();
+          }
+          toastDecision(await fireEvent(source, type, location, ts));
+          refresh();
+        } catch (e) {
+          showToast("error", e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runNight(source, type, location) {
+        simBtns(true);
+        try {
+          const d = new Date();
+          d.setHours(0, 45, 0, 0);
+          toastDecision(
+            await fireEvent(source, type, location, d.toISOString()),
+          );
+          refresh();
+        } catch (e) {
+          showToast("error", e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runPattern() {
+        simBtns(true);
+        try {
+          const b = Date.now();
+          toastDecision(
+            await fireEvents([
+              {
+                source: "ring",
+                type: "motion",
+                location: "side_yard",
+                timestamp: new Date(b - 8 * 60000).toISOString(),
+              },
+              {
+                source: "ring",
+                type: "door_activity",
+                location: "back_door",
+                timestamp: new Date(b - 4 * 60000).toISOString(),
+              },
+              {
+                source: "ring",
+                type: "window_activity",
+                location: "garage",
+                timestamp: new Date(b).toISOString(),
+              },
+            ]),
+          );
+          refresh();
+        } catch (e) {
+          showToast("error", e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runNightCluster() {
+        simBtns(true);
+        try {
+          const base = new Date();
+          base.setHours(23, 5, 0, 0);
+          const t = base.getTime();
+          toastDecision(
+            await fireEvents([
+              {
+                source: "ring",
+                type: "motion",
+                location: "back_yard",
+                timestamp: new Date(t).toISOString(),
+              },
+              {
+                source: "ring",
+                type: "door_activity",
+                location: "back_door",
+                timestamp: new Date(t + 3 * 60000).toISOString(),
+              },
+              {
+                source: "ring",
+                type: "window_activity",
+                location: "bedroom",
+                timestamp: new Date(t + 6 * 60000).toISOString(),
+              },
+            ]),
+          );
+          refresh();
+        } catch (e) {
+          showToast("error", e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runRepeatedDoorbell() {
+        simBtns(true);
+        try {
+          const b = Date.now();
+          toastDecision(
+            await fireEvents([
+              {
+                source: "ring",
+                type: "doorbell",
+                location: "front_door",
+                timestamp: new Date(b - 5 * 60000).toISOString(),
+              },
+              {
+                source: "ring",
+                type: "doorbell",
+                location: "front_door",
+                timestamp: new Date(b - 3 * 60000).toISOString(),
+              },
+              {
+                source: "ring",
+                type: "doorbell",
+                location: "front_door",
+                timestamp: new Date(b).toISOString(),
+              },
+            ]),
+          );
+          refresh();
+        } catch (e) {
+          showToast("error", e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runOutsideWindow(source, type, location) {
+        simBtns(true);
+        try {
+          const d = new Date();
+          d.setHours(7, 0, 0, 0);
+          toastDecision(
+            await fireEvent(source, type, location, d.toISOString()),
+          );
+          refresh();
+        } catch (e) {
+          showToast("error", e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runEarlyReturn(source, type, location) {
+        simBtns(true);
+        try {
+          const d = new Date();
+          if (d.getDay() === 0) d.setDate(d.getDate() + 1);
+          if (d.getDay() === 6) d.setDate(d.getDate() + 2);
+          d.setHours(11, 0, 0, 0);
+          toastDecision(
+            await fireEvent(source, type, location, d.toISOString()),
+          );
+          refresh();
+        } catch (e) {
+          showToast("error", e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runGhostMotion() {
+        simBtns(true);
+        try {
+          toastDecision(await fireEvent("ring", "motion", "living_room"));
+          refresh();
+        } catch (e) {
+          showToast("error", e.message);
+        } finally {
+          simBtns(false);
+        }
+      }
+
+      async function runCustom() {
+        const source = document.getElementById("cSource").value;
+        const type = document.getElementById("cType").value.trim();
+        const location = document.getElementById("cLocation").value.trim();
+        const tsRaw = document.getElementById("cTimestamp").value;
+        if (!type || !location) {
+          showToast("error", "Type and Location are required.");
+          return;
+        }
+        simBtns(true);
+        try {
+          const ts = tsRaw ? new Date(tsRaw).toISOString() : undefined;
+          toastDecision(await fireEvent(source, type, location, ts));
+          refresh();
+        } catch (e) {
+          showToast("error", e.message);
+        } finally {
+          simBtns(false);
+        }
       }
 
       refresh();

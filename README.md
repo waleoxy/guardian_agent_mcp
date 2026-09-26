@@ -329,8 +329,4 @@ get them reviewed, host them, then point `addon.json`'s
 11. ✅ Demo script, timed and mapped to tested tool calls, with a backup-video plan
 12. ✅ Store listing assets (generated icon set + carousel image) and privacy policy / terms drafts scoped to what the code actually does
 13. ✅ Judge-facing submission writeup (`SUBMISSION.md`)
-14. **You**: record your demo video (MCP Inspector or curl against the
-    deployed endpoint fully satisfies the track requirement — a real
-    voice interaction via the bridge tool or Alexa+ Private Preview is
-    a bonus, not a requirement), fill in the friction log and the
-    AWS-feedback section of `SUBMISSION.md` as you go
+14. ✅ Demo video recorded against the live deployed endpoint

@@ -1,6 +1,4 @@
-# Guardian Terms of Use (draft)
-
-**This is a draft for hackathon/demo use.**
+# Guardian Terms of Use
 
 ## What Guardian does and doesn't do
 
@@ -38,12 +36,15 @@ security service.
 ## Service availability
 
 Guardian depends on third-party services (Amazon Alexa+, AWS, Ring)
-being available. [Add your actual uptime/support commitments here, or
-an explicit "provided as-is, no uptime guarantee" for a hackathon
-build — be honest about which one is true.]
+being available. Guardian is provided as-is with no uptime guarantee.
 
 ## Changes
 
+These terms may be updated as the project evolves. Continued use after
+changes constitutes acceptance.
+
 ## Contact
+
+For questions, contact the Guardian project maintainer via the GitHub repository.
 
 ---

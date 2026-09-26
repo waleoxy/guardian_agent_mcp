@@ -1,7 +1,4 @@
-# Guardian Privacy Policy (draft)
-
-\*\*This is a draft for hackathon/demo use, written to match exactly
-what the code in this repository does.
+# Guardian Privacy Policy
 
 ## What Guardian is
 
@@ -41,10 +38,16 @@ Event, incident, member, and policy data is stored in Amazon DynamoDB. Reasoning
 
 ## Data retention and deletion
 
+Event and incident data is retained for the lifetime of the household configuration. You may delete all data by clearing the DynamoDB tables associated with your deployment.
+
 ## Third parties
 
 Guardian integrates with Ring (event source) and Amazon Alexa+
 (voice/visual interface). Each has its own privacy policy governing
 data they process outside of Guardian.
+
+## Contact
+
+For questions about this privacy policy, contact the Guardian project maintainer via the GitHub repository.
 
 ---

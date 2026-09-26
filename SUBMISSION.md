@@ -56,7 +56,7 @@ Ring   ──EventBridge───────────►  Lambda (ringEventH
 Fire TV / browser  ──REST poll──►  same Lambda's /api/*     ──►  DynamoDB
                                           │
                                     Amazon Bedrock
-                                  (Claude, via InvokeModel)
+                                  (Nova Lite, via Converse API)
 ```
 
 Two independent entry points — the synchronous MCP path Alexa+ uses,

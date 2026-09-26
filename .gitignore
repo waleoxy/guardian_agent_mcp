@@ -3,4 +3,17 @@ dist/
 .env
 *.log
 .aws-sam/
-src/generated/
+src/generated/*.json
+# AWS CLI debug output — accidentally committed, not meant to be tracked
+bedrock-current-quotas.json
+bedrock-events.json
+bedrock-metrics.json
+bedrock-quotas.json
+bedrock-test.json
+claude-test.json
+converse-events.json
+invoke-all.json
+invoke-model-events.json
+nova-test.json
+nova2-test.json
+quotas.json

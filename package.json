@@ -5,9 +5,11 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
+    "copy:static": "xcopy /E /I /Y public .aws-sam\\build\\McpFunction\\public && xcopy /E /I /Y fire-tv .aws-sam\\build\\McpFunction\\fire-tv",
     "start": "node dist/server.js",
     "dev": "tsc --watch & node --watch dist/server.js",
     "seed:dynamo": "node dist/scripts/seedDynamo.js",
+    "clear:events": "node dist/scripts/clearEvents.js",
     "seed:postgres": "node dist/scripts/seedPostgres.js",
     "ring:simulate": "node dist/ring/simulator.js",
     "test": "vitest run"

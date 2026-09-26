@@ -21,13 +21,30 @@ function notFound(what: string, id: string) {
   };
 }
 
+// Every household-member-taking tool shares this schema so the
+// guidance (and the concrete IDs) only need to be written once. A
+// voice user says "Mary," never "m-mary" — spelling out the known IDs
+// directly, rather than just saying "look it up first," saves a
+// round-trip tool call and removes a place a live agent can guess wrong.
+const memberIdSchema = z
+  .string()
+  .describe(
+    "The household member's internal id — 'm-john' (John, owner), 'm-mary' (Mary, parent), or 'm-james' (James, child) in this household. If a name is given that isn't one of these, call get_home_status first to check the current member list rather than guessing an id.",
+  );
+
+const incidentIdSchema = z
+  .string()
+  .describe(
+    "An incident's id, as returned by create_incident, start_wellness_check, or get_home_status's activeIncidents list. Never guess this — call get_home_status first if you don't already have it from an earlier step in this conversation.",
+  );
+
 export function registerGuardianTools(server: McpServer) {
   server.registerTool(
     "get_home_status",
     {
       title: "Get home status",
       description:
-        "Returns current status of household members and active incidents.",
+        "The live status check — call this for any general 'how's the house / how's everything / what's going on at home' question. Returns whether monitoring is active, each household member's current status (home/away), and any active incidents needing attention right now. This is the right tool for a status check-in; use get_household_context instead only when you specifically need routines, expected-visitor schedules, or the list of safety policies.",
       inputSchema: {},
     },
     async () => {
@@ -55,7 +72,7 @@ export function registerGuardianTools(server: McpServer) {
     {
       title: "Get household context",
       description:
-        "Returns household members, their routines, and expected visitors — used to judge whether an event is expected.",
+        "Static household configuration — members' routines, expected-visitor schedules, and safety policies. Call this when the question is about rules, schedules, or setup (e.g. 'who's expected today', 'what are the safety rules'), not for a live status check — use get_home_status for 'how's the house right now' instead.",
       inputSchema: {},
     },
     async () => {
@@ -73,7 +90,7 @@ export function registerGuardianTools(server: McpServer) {
     {
       title: "Get person status",
       description: "Returns the current status of a specific household member.",
-      inputSchema: { memberId: z.string() },
+      inputSchema: { memberId: memberIdSchema },
     },
     async ({ memberId }) => {
       const member = await store.getMember(memberId);
@@ -90,8 +107,16 @@ export function registerGuardianTools(server: McpServer) {
         "Records a new household event (e.g. from Ring) and returns Guardian's decision about how to respond. This is the main entry point for the reasoning pipeline.",
       inputSchema: {
         source: z.enum(["ring", "manual", "system"]),
-        type: z.string(),
-        location: z.string(),
+        type: z
+          .string()
+          .describe(
+            "Event type, e.g. 'person_detected', 'door_activity', 'window_activity', 'motion', or 'no_response'.",
+          ),
+        location: z
+          .string()
+          .describe(
+            "Where it happened, e.g. 'front_door', 'back_door', 'garage', 'side_yard'.",
+          ),
         timestamp: z
           .string()
           .optional()
@@ -113,7 +138,7 @@ export function registerGuardianTools(server: McpServer) {
       title: "Start wellness check",
       description:
         "Begins a wellness-check workflow for a household member who hasn't responded or whose routine looks unusual.",
-      inputSchema: { memberId: z.string(), reason: z.string() },
+      inputSchema: { memberId: memberIdSchema, reason: z.string() },
     },
     async ({ memberId, reason }) => {
       const member = await store.getMember(memberId);
@@ -140,7 +165,7 @@ export function registerGuardianTools(server: McpServer) {
     {
       title: "Notify household member",
       description: "Sends a notification to a household member (or the owner).",
-      inputSchema: { memberId: z.string(), message: z.string() },
+      inputSchema: { memberId: memberIdSchema, message: z.string() },
     },
     async ({ memberId, message }) => {
       // Stub: production wires SNS/SES/push here. Logging + returning
@@ -155,7 +180,7 @@ export function registerGuardianTools(server: McpServer) {
       title: "Show Fire TV alert",
       description:
         "Pushes a status update to the Fire TV / dashboard display for a given incident.",
-      inputSchema: { incidentId: z.string(), headline: z.string() },
+      inputSchema: { incidentId: incidentIdSchema, headline: z.string() },
     },
     async ({ incidentId, headline }) => {
       const incident = await store.getIncident(incidentId);
@@ -207,7 +232,7 @@ export function registerGuardianTools(server: McpServer) {
       description:
         "Marks an incident as resolved, e.g. once a member responds.",
       inputSchema: {
-        incidentId: z.string(),
+        incidentId: incidentIdSchema,
         resolutionNote: z.string().optional(),
       },
     },
@@ -228,7 +253,10 @@ export function registerGuardianTools(server: McpServer) {
       title: "Escalate incident",
       description:
         "Escalates an incident per a defined household policy (e.g. contact family, call emergency contact). Requires explicit policy authorization — Guardian never escalates unprompted.",
-      inputSchema: { incidentId: z.string(), escalationReason: z.string() },
+      inputSchema: {
+        incidentId: incidentIdSchema,
+        escalationReason: z.string(),
+      },
     },
     async ({ incidentId, escalationReason }) => {
       const incident = await store.updateIncident(incidentId, {
@@ -287,7 +315,12 @@ export function registerGuardianTools(server: McpServer) {
       } catch (err: any) {
         return {
           isError: true,
-          content: [{ type: "text" as const, text: `Policy compiler threw unexpectedly: ${err?.message ?? err}` }],
+          content: [
+            {
+              type: "text" as const,
+              text: `Policy compiler threw unexpectedly: ${err?.message ?? err}`,
+            },
+          ],
         };
       }
       if (!result.ok) {

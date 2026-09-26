@@ -19,8 +19,7 @@ import { extractJson } from "./utils/extractJson";
  * always better than no decision.
  */
 
-const MODEL_ID =
-  process.env.BEDROCK_MODEL_ID ?? "anthropic.claude-3-5-sonnet-20241022-v2:0";
+const MODEL_ID = process.env.BEDROCK_MODEL_ID ?? "amazon.nova-lite-v1:0";
 const REGION = process.env.AWS_REGION ?? "us-east-1";
 
 const client = new BedrockRuntimeClient({ region: REGION });
@@ -79,7 +78,10 @@ export async function compilePolicy(
   try {
     result = JSON.parse(extractJson(text));
   } catch {
-    return { ok: false, error: `Model returned non-JSON: ${text.slice(0, 200)}` };
+    return {
+      ok: false,
+      error: `Model returned non-JSON: ${text.slice(0, 200)}`,
+    };
   }
 
   if (result.error) {
@@ -105,4 +107,3 @@ export async function compilePolicy(
 
   return { ok: true, policy };
 }
-

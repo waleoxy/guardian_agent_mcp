@@ -110,7 +110,7 @@ catalog and schemas (any MCP client, or curl with an
 ```bash
 export DECISION_ENGINE=bedrock
 export AWS_REGION=us-east-1
-export BEDROCK_MODEL_ID=anthropic.claude-3-5-sonnet-20241022-v2:0
+export BEDROCK_MODEL_ID=amazon.nova-lite-v1:0
 npm start
 ```
 

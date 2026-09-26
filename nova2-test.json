@@ -1,0 +1,15 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Reply with exactly: GUARDIAN BEDROCK TEST OK"
+        }
+      ]
+    }
+  ],
+  "inferenceConfig": {
+    "maxTokens": 20
+  }
+}

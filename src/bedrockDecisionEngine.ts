@@ -21,8 +21,7 @@ import { extractJson } from "./utils/extractJson";
  * a crashed demo.
  */
 
-const MODEL_ID =
-  process.env.BEDROCK_MODEL_ID ?? "anthropic.claude-3-5-sonnet-20241022-v2:0";
+const MODEL_ID = process.env.BEDROCK_MODEL_ID ?? "amazon.nova-lite-v1:0";
 const REGION = process.env.AWS_REGION ?? "us-east-1";
 const TIMEOUT_MS = Number(process.env.BEDROCK_TIMEOUT_MS ?? 4000);
 
@@ -74,13 +73,14 @@ async function decideViaBedrock(event: HouseholdEvent): Promise<Decision> {
     new ConverseCommand({
       modelId: MODEL_ID,
       system: [{ text: SYSTEM_PROMPT }],
-      messages: [{ role: "user", content: [{ text: JSON.stringify(payload) }] }],
+      messages: [
+        { role: "user", content: [{ text: JSON.stringify(payload) }] },
+      ],
       inferenceConfig: { maxTokens: 500 },
     }),
   );
 
-  const text: string =
-    response.output?.message?.content?.[0]?.text ?? "";
+  const text: string = response.output?.message?.content?.[0]?.text ?? "";
 
   const jsonText = extractJson(text);
   const decision = JSON.parse(jsonText) as Decision;

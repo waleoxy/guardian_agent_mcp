@@ -1,0 +1,15 @@
+﻿{
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Reply with exactly: GUARDIAN CLAUDE TEST OK"
+        }
+      ]
+    }
+  ],
+  "inferenceConfig": {
+    "maxTokens": 20
+  }
+}

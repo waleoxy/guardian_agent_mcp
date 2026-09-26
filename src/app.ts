@@ -113,8 +113,15 @@ app.post("/api/incidents/:id/escalate", async (req, res) => {
   res.json(incident);
 });
 
-app.use(express.static(path.join(__dirname, "..", "public")));
-app.use("/fire-tv", express.static(path.join(__dirname, "..", "fire-tv")));
+// In Lambda, esbuild outputs a flat bundle at /var/task — public/ and fire-tv/
+// are copied alongside it (same dir). Locally, __dirname is dist/ so we need
+// to go up one level. Support both:
+const staticRoot = path.join(__dirname, "public");
+const staticRootAlt = path.join(__dirname, "..", "public");
+const publicDir = require("fs").existsSync(staticRoot) ? staticRoot : staticRootAlt;
+const fireTvDir = publicDir.replace(/public$/, "fire-tv");
+app.use(express.static(publicDir));
+app.use("/fire-tv", express.static(fireTvDir));
 
 app.get("/health", async (_req, res) => {
   try {

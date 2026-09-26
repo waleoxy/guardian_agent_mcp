@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Guardian — MCP server (Lambda + API Gateway), Ring ingestion Lambda
@@ -16,7 +16,7 @@ Parameters:
       you've confirmed model access in this account/region.
   BedrockModelId:
     Type: String
-    Default: anthropic.claude-3-5-sonnet-20241022-v2:0
+    Default: amazon.nova-lite-v1:0
 
 Globals:
   Function:
@@ -36,7 +36,6 @@ Globals:
         TABLE_CONFIG: !Ref ConfigTable
 
 Resources:
-
   # --- MCP server: Alexa+'s public HTTPS entry point ---------------------
   McpFunction:
     Type: AWS::Serverless::Function
@@ -131,7 +130,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: guardian-ring-event-dlq
-      MessageRetentionPeriod: 1209600  # 14 days
+      MessageRetentionPeriod: 1209600 # 14 days
 
   # --- Tables --------------------------------------------------------------
   MembersTable:
